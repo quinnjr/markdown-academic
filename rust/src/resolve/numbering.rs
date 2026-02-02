@@ -81,7 +81,11 @@ fn assign_block_numbers(
         }
         Block::Environment { kind, label, content, .. } => {
             let counter = match kind {
-                EnvironmentKind::Theorem | EnvironmentKind::Proposition | EnvironmentKind::Corollary => {
+                EnvironmentKind::Theorem
+                | EnvironmentKind::Proposition
+                | EnvironmentKind::Corollary
+                | EnvironmentKind::Conjecture
+                | EnvironmentKind::Axiom => {
                     *theorem_counter += 1;
                     Some(*theorem_counter)
                 }
@@ -93,7 +97,7 @@ fn assign_block_numbers(
                     *definition_counter += 1;
                     Some(*definition_counter)
                 }
-                EnvironmentKind::Example | EnvironmentKind::Remark => {
+                EnvironmentKind::Example | EnvironmentKind::Remark | EnvironmentKind::Exercise => {
                     *example_counter += 1;
                     Some(*example_counter)
                 }
@@ -109,7 +113,14 @@ fn assign_block_numbers(
                     *algorithm_counter += 1;
                     Some(*algorithm_counter)
                 }
-                EnvironmentKind::Proof => None, // Proofs are not numbered
+                // Non-numbered environments
+                EnvironmentKind::Proof
+                | EnvironmentKind::Abstract
+                | EnvironmentKind::Note
+                | EnvironmentKind::Warning
+                | EnvironmentKind::Quote
+                | EnvironmentKind::Solution
+                | EnvironmentKind::Case => None,
                 EnvironmentKind::Custom(_) => None, // Custom environments not numbered by default
             };
 

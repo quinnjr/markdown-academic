@@ -1,14 +1,13 @@
 //! HTML renderer for resolved documents.
 
 use crate::ast::{
-    Alignment, BibEntry, Block, Citation, EnvironmentKind, FootnoteKind, Inline, LabelInfo,
-    ResolvedDocument,
+    Alignment, BibEntry, Block, Citation, CitationStyle, DescriptionItem, EnvironmentKind,
+    FootnoteKind, Inline, ResolvedDocument,
 };
 use crate::error::Result;
 use crate::render::math::{create_renderer, MathBackend, MathRenderer};
 use crate::resolve::citations::get_citation_order;
 use crate::resolve::references::label_to_id;
-use std::collections::HashMap;
 
 /// Configuration for HTML rendering.
 #[derive(Debug, Clone)]
@@ -273,8 +272,60 @@ impl<'a> HtmlRenderer<'a> {
                 self.output.push_str(html);
                 self.output.push('\n');
             }
+            Block::DescriptionList(items) => {
+                self.render_description_list(items)?;
+            }
+            Block::PageBreak => {
+                self.output.push_str(&format!(
+                    r#"<div class="{}pagebreak" style="page-break-after: always;"></div>"#,
+                    self.config.class_prefix
+                ));
+                self.output.push('\n');
+            }
+            Block::Abstract(blocks) => {
+                self.output.push_str(&format!(
+                    r#"<div class="{}abstract">"#,
+                    self.config.class_prefix
+                ));
+                self.output.push_str(&format!(
+                    r#"<h2 class="{}abstract-title">Abstract</h2>"#,
+                    self.config.class_prefix
+                ));
+                self.output.push('\n');
+                for block in blocks {
+                    self.render_block(block)?;
+                }
+                self.output.push_str("</div>\n");
+            }
+            Block::AppendixMarker => {
+                self.output.push_str(&format!(
+                    r#"<div class="{}appendix-marker">"#,
+                    self.config.class_prefix
+                ));
+                self.output.push_str(&format!(
+                    r#"<h1 class="{}appendix-title">Appendices</h1>"#,
+                    self.config.class_prefix
+                ));
+                self.output.push_str("</div>\n");
+            }
         }
 
+        Ok(())
+    }
+
+    fn render_description_list(&mut self, items: &[DescriptionItem]) -> Result<()> {
+        self.output.push_str("<dl>\n");
+        for item in items {
+            self.output.push_str("<dt>");
+            self.render_inlines(&item.term)?;
+            self.output.push_str("</dt>\n");
+            self.output.push_str("<dd>");
+            for block in &item.description {
+                self.render_block(block)?;
+            }
+            self.output.push_str("</dd>\n");
+        }
+        self.output.push_str("</dl>\n");
         Ok(())
     }
 
@@ -505,6 +556,24 @@ impl<'a> HtmlRenderer<'a> {
                 self.render_inlines(inlines)?;
                 self.output.push_str("</del>");
             }
+            Inline::Subscript(inlines) => {
+                self.output.push_str("<sub>");
+                self.render_inlines(inlines)?;
+                self.output.push_str("</sub>");
+            }
+            Inline::Superscript(inlines) => {
+                self.output.push_str("<sup>");
+                self.render_inlines(inlines)?;
+                self.output.push_str("</sup>");
+            }
+            Inline::SmallCaps(inlines) => {
+                self.output.push_str(&format!(
+                    r#"<span style="font-variant: small-caps;" class="{}smallcaps">"#,
+                    self.config.class_prefix
+                ));
+                self.render_inlines(inlines)?;
+                self.output.push_str("</span>");
+            }
             Inline::Code(code) => {
                 self.output.push_str("<code>");
                 self.output.push_str(&escape_html(code));
@@ -564,30 +633,100 @@ impl<'a> HtmlRenderer<'a> {
 
     fn render_citation(&mut self, cite: &Citation) -> Result<()> {
         self.output.push_str(&format!(
-            r#"<span class="{}citation">["#,
+            r#"<span class="{}citation">"#,
             self.config.class_prefix
         ));
 
-        for (i, key) in cite.keys.iter().enumerate() {
-            if i > 0 {
-                self.output.push_str(", ");
+        match cite.style {
+            CitationStyle::Parenthetical => {
+                // (Author, Year) or [Author, Year]
+                self.output.push('[');
+                for (i, key) in cite.keys.iter().enumerate() {
+                    if i > 0 {
+                        self.output.push_str("; ");
+                    }
+                    let id = format!("bib-{}", key);
+                    if let Some(entry) = self.doc.citations.get(key) {
+                        let short = format_short_citation(entry);
+                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, escape_html(&short)));
+                    } else {
+                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+                    }
+                }
+                if let Some(ref locator) = cite.locator {
+                    self.output.push_str(&format!(", {}", escape_html(locator)));
+                }
+                self.output.push(']');
             }
-
-            let id = format!("bib-{}", key);
-            if let Some(entry) = self.doc.citations.get(key) {
-                // Create a short citation (author year)
-                let short = format_short_citation(entry);
-                self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, escape_html(&short)));
-            } else {
-                self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+            CitationStyle::Textual => {
+                // Author (Year)
+                for (i, key) in cite.keys.iter().enumerate() {
+                    if i > 0 {
+                        self.output.push_str(", ");
+                    }
+                    let id = format!("bib-{}", key);
+                    if let Some(entry) = self.doc.citations.get(key) {
+                        let (author, year) = format_author_year(entry);
+                        self.output.push_str(&format!(
+                            "{} (<a href=\"#{}\">{}</a>)",
+                            escape_html(&author),
+                            id,
+                            escape_html(&year)
+                        ));
+                    } else {
+                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+                    }
+                }
+                if let Some(ref locator) = cite.locator {
+                    self.output.push_str(&format!(", {}", escape_html(locator)));
+                }
+            }
+            CitationStyle::AuthorOnly => {
+                // Just Author
+                for (i, key) in cite.keys.iter().enumerate() {
+                    if i > 0 {
+                        self.output.push_str(", ");
+                    }
+                    let id = format!("bib-{}", key);
+                    if let Some(entry) = self.doc.citations.get(key) {
+                        let (author, _) = format_author_year(entry);
+                        self.output.push_str(&format!(
+                            "<a href=\"#{}\">{}</a>",
+                            id,
+                            escape_html(&author)
+                        ));
+                    } else {
+                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+                    }
+                }
+            }
+            CitationStyle::YearOnly => {
+                // Just (Year)
+                self.output.push('(');
+                for (i, key) in cite.keys.iter().enumerate() {
+                    if i > 0 {
+                        self.output.push_str(", ");
+                    }
+                    let id = format!("bib-{}", key);
+                    if let Some(entry) = self.doc.citations.get(key) {
+                        let (_, year) = format_author_year(entry);
+                        self.output.push_str(&format!(
+                            "<a href=\"#{}\">{}</a>",
+                            id,
+                            escape_html(&year)
+                        ));
+                    } else {
+                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+                    }
+                }
+                if let Some(ref locator) = cite.locator {
+                    self.output.push_str(&format!(", {}", escape_html(locator)));
+                }
+                self.output.push(')');
             }
         }
 
-        if let Some(ref locator) = cite.locator {
-            self.output.push_str(&format!(", {}", escape_html(locator)));
-        }
-
-        self.output.push_str("]</span>");
+        self.output.push_str("</span>");
 
         Ok(())
     }
@@ -790,6 +929,56 @@ fn format_short_citation(entry: &BibEntry) -> String {
     } else {
         format!("{}, {}", author, year)
     }
+}
+
+/// Format author and year separately for textual citations.
+fn format_author_year(entry: &BibEntry) -> (String, String) {
+    let author = if entry.authors.len() > 2 {
+        let first = entry.authors.first().map(|a| {
+            if let Some(comma) = a.find(',') {
+                &a[..comma]
+            } else if let Some(space) = a.rfind(' ') {
+                &a[space + 1..]
+            } else {
+                a.as_str()
+            }
+        }).unwrap_or("Unknown");
+        format!("{} et al.", first)
+    } else if entry.authors.len() == 2 {
+        let first = entry.authors.first().map(|a| {
+            if let Some(comma) = a.find(',') {
+                &a[..comma]
+            } else if let Some(space) = a.rfind(' ') {
+                &a[space + 1..]
+            } else {
+                a.as_str()
+            }
+        }).unwrap_or("Unknown");
+        let second = entry.authors.get(1).map(|a| {
+            if let Some(comma) = a.find(',') {
+                &a[..comma]
+            } else if let Some(space) = a.rfind(' ') {
+                &a[space + 1..]
+            } else {
+                a.as_str()
+            }
+        }).unwrap_or("Unknown");
+        format!("{} & {}", first, second)
+    } else {
+        entry.authors.first().map(|a| {
+            if let Some(comma) = a.find(',') {
+                a[..comma].to_string()
+            } else if let Some(space) = a.rfind(' ') {
+                a[space + 1..].to_string()
+            } else {
+                a.to_string()
+            }
+        }).unwrap_or_else(|| "Unknown".to_string())
+    };
+
+    let year = entry.year.as_deref().unwrap_or("n.d.").to_string();
+
+    (author, year)
 }
 
 fn format_bibliography_entry(entry: &BibEntry) -> String {

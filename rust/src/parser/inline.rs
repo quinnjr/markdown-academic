@@ -1,7 +1,7 @@
 //! Inline-level parsing for Markdown.
 
-use crate::ast::{Citation, FootnoteKind, Inline};
-use crate::error::{ParseError, Result};
+use crate::ast::{Citation, CitationStyle, FootnoteKind, Inline};
+use crate::error::Result;
 use crate::parser::lexer::{
     citation, display_math, emphasis, footnote_inline, footnote_ref, inline_code, inline_math,
     label, reference, strong, CitationToken, Token,
@@ -111,15 +111,72 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
         }
     }
 
-    // Citation ([@key])
+    // Year-only citation ([-@key])
+    if input.starts_with("[-@") {
+        if let Some(end) = input[3..].find(']') {
+            let key = &input[3..3 + end];
+            let rest = &input[3 + end + 1..];
+            // Parse optional locator
+            let (key, locator) = if let Some(comma) = key.find(',') {
+                (&key[..comma], Some(key[comma + 1..].trim().to_string()))
+            } else {
+                (key.trim(), None)
+            };
+            let cite = Citation {
+                keys: vec![key.to_string()],
+                style: CitationStyle::YearOnly,
+                prefix: None,
+                locator,
+            };
+            return Ok(Some((Inline::Citation(cite), rest)));
+        }
+    }
+
+    // Parenthetical citation ([@key] or [@key1; @key2])
     if input.starts_with("[@") {
         if let Ok((rest, Token::Citation(cites))) = citation(input) {
             let cite = Citation {
                 keys: cites.iter().map(|c| c.key.to_string()).collect(),
+                style: CitationStyle::Parenthetical,
                 prefix: None,
                 locator: cites.first().and_then(|c| c.locator.map(String::from)),
             };
             return Ok(Some((Inline::Citation(cite), rest)));
+        }
+    }
+
+    // Subscript (H~2~O)
+    if input.starts_with('~') && !input.starts_with("~~") {
+        if let Some(end) = input[1..].find('~') {
+            // Make sure this isn't a strikethrough
+            if end > 0 && !input[1..1 + end].contains('~') {
+                let content = &input[1..1 + end];
+                let rest = &input[1 + end + 1..];
+                let inner = parse_inlines(content)?;
+                return Ok(Some((Inline::Subscript(inner), rest)));
+            }
+        }
+    }
+
+    // Superscript (x^2^ or e^iπ^)
+    if input.starts_with('^') && !input.starts_with("^[") {
+        if let Some(end) = input[1..].find('^') {
+            if end > 0 {
+                let content = &input[1..1 + end];
+                let rest = &input[1 + end + 1..];
+                let inner = parse_inlines(content)?;
+                return Ok(Some((Inline::Superscript(inner), rest)));
+            }
+        }
+    }
+
+    // Small caps ([sc]...[/sc])
+    if input.starts_with("[sc]") {
+        if let Some(end) = input[4..].find("[/sc]") {
+            let content = &input[4..4 + end];
+            let rest = &input[4 + end + 5..];
+            let inner = parse_inlines(content)?;
+            return Ok(Some((Inline::SmallCaps(inner), rest)));
         }
     }
 
@@ -144,16 +201,58 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
         }
     }
 
-    // Cross-reference (@label)
-    if input.starts_with('@') && !input.starts_with("[@") {
+    // Cross-reference or textual citation (@label or @citationkey)
+    // Textual citations produce "Author (Year)" style
+    if input.starts_with('@') && !input.starts_with("[@") && !input.starts_with("[-@") {
         if let Ok((rest, Token::Reference(lbl))) = reference(input) {
-            return Ok(Some((
-                Inline::Reference {
-                    label: lbl.to_string(),
-                    resolved: None,
-                },
-                rest,
-            )));
+            let label_str = lbl.to_string();
+            
+            // Check if this ends with a hyphen (author-only citation: @author-)
+            if label_str.ends_with('-') {
+                let key = &label_str[..label_str.len() - 1];
+                let cite = Citation {
+                    keys: vec![key.to_string()],
+                    style: CitationStyle::AuthorOnly,
+                    prefix: None,
+                    locator: None,
+                };
+                return Ok(Some((Inline::Citation(cite), rest)));
+            }
+            
+            // First try as cross-reference (sec:, fig:, thm:, eq:, tab:, etc.)
+            // These prefixes indicate a reference, not a citation
+            let is_reference = label_str.starts_with("sec:")
+                || label_str.starts_with("fig:")
+                || label_str.starts_with("thm:")
+                || label_str.starts_with("eq:")
+                || label_str.starts_with("tab:")
+                || label_str.starts_with("lem:")
+                || label_str.starts_with("def:")
+                || label_str.starts_with("prop:")
+                || label_str.starts_with("cor:")
+                || label_str.starts_with("algo:")
+                || label_str.starts_with("ex:")
+                || label_str.starts_with("rem:")
+                || label_str.starts_with("app:");
+            
+            if is_reference {
+                return Ok(Some((
+                    Inline::Reference {
+                        label: label_str,
+                        resolved: None,
+                    },
+                    rest,
+                )));
+            }
+            
+            // Otherwise, treat as textual citation
+            let cite = Citation {
+                keys: vec![label_str],
+                style: CitationStyle::Textual,
+                prefix: None,
+                locator: None,
+            };
+            return Ok(Some((Inline::Citation(cite), rest)));
         }
     }
 
@@ -381,9 +480,10 @@ fn consume_text(input: &str) -> (&str, &str) {
             }
 
             if c == '~' {
-                // Check for strikethrough
+                // Check for strikethrough (~~) or subscript (~text~)
                 if let Some(&(_, next)) = chars.peek() {
-                    if next == '~' {
+                    // Stop if next is ~ (strikethrough) or alphanumeric (subscript)
+                    if next == '~' || next.is_alphanumeric() {
                         if end == 0 && i == 0 {
                             return ("", input);
                         }
@@ -437,9 +537,10 @@ fn consume_text(input: &str) -> (&str, &str) {
             }
 
             if c == '^' {
-                // Check for footnote (^[ )
+                // Check for footnote (^[) or superscript (^text^)
                 if let Some(&(_, next)) = chars.peek() {
-                    if next == '[' {
+                    // Stop if next is [ (footnote) or alphanumeric (superscript)
+                    if next == '[' || next.is_alphanumeric() {
                         if end == 0 && i == 0 {
                             return ("", input);
                         }

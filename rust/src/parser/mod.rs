@@ -49,10 +49,19 @@ fn parse_front_matter(input: &str) -> Result<(Metadata, &str)> {
 #[derive(Debug, Deserialize, Default)]
 struct RawFrontMatter {
     title: Option<String>,
+    subtitle: Option<String>,
     #[serde(default)]
     authors: Vec<String>,
     author: Option<String>,
     date: Option<String>,
+    #[serde(rename = "abstract")]
+    document_abstract: Option<String>,
+    #[serde(default)]
+    keywords: Vec<String>,
+    institution: Option<String>,
+    department: Option<String>,
+    advisor: Option<String>,
+    lang: Option<String>,
     #[serde(default)]
     macros: HashMap<String, String>,
     bibliography: Option<BibliographyConfig>,
@@ -92,8 +101,15 @@ fn convert_front_matter(raw: RawFrontMatter) -> Metadata {
         macros,
         bibliography_path,
         title: raw.title,
+        subtitle: raw.subtitle,
         authors,
         date: raw.date,
+        document_abstract: raw.document_abstract,
+        keywords: raw.keywords,
+        institution: raw.institution,
+        department: raw.department,
+        advisor: raw.advisor,
+        lang: raw.lang,
     }
 }
 

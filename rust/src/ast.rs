@@ -20,10 +20,24 @@ pub struct Metadata {
     pub bibliography_path: Option<String>,
     /// Document title
     pub title: Option<String>,
+    /// Document subtitle
+    pub subtitle: Option<String>,
     /// Document author(s)
     pub authors: Vec<String>,
     /// Document date
     pub date: Option<String>,
+    /// Document abstract
+    pub document_abstract: Option<String>,
+    /// Keywords for the document
+    pub keywords: Vec<String>,
+    /// Institution (for academic documents)
+    pub institution: Option<String>,
+    /// Department
+    pub department: Option<String>,
+    /// Advisor/supervisor
+    pub advisor: Option<String>,
+    /// Document language
+    pub lang: Option<String>,
 }
 
 /// A user-defined macro.
@@ -95,6 +109,18 @@ pub enum Block {
         label: Option<String>,
         caption: Option<Vec<Inline>>,
     },
+
+    /// A description list (definition list)
+    DescriptionList(Vec<DescriptionItem>),
+
+    /// A page break / section break
+    PageBreak,
+
+    /// An abstract section
+    Abstract(Vec<Block>),
+
+    /// An appendix marker (changes section numbering to letters)
+    AppendixMarker,
 }
 
 /// List item containing blocks.
@@ -102,6 +128,15 @@ pub enum Block {
 pub struct ListItem {
     pub content: Vec<Block>,
     pub checked: Option<bool>,
+}
+
+/// A description list item (term and definition).
+#[derive(Debug, Clone, PartialEq)]
+pub struct DescriptionItem {
+    /// The term being defined
+    pub term: Vec<Inline>,
+    /// The definition/description
+    pub description: Vec<Block>,
 }
 
 /// Environment types.
@@ -118,6 +153,24 @@ pub enum EnvironmentKind {
     Figure,
     Table,
     Algorithm,
+    /// Abstract environment
+    Abstract,
+    /// Note environment
+    Note,
+    /// Warning/caution environment
+    Warning,
+    /// Quote environment (extended block quote)
+    Quote,
+    /// Conjecture
+    Conjecture,
+    /// Axiom
+    Axiom,
+    /// Exercise
+    Exercise,
+    /// Solution
+    Solution,
+    /// Case (for proof cases)
+    Case,
     /// Custom environment with user-defined name
     Custom(String),
 }
@@ -137,6 +190,15 @@ impl EnvironmentKind {
             "figure" | "fig" => Self::Figure,
             "table" | "tab" => Self::Table,
             "algorithm" | "algo" => Self::Algorithm,
+            "abstract" | "abs" => Self::Abstract,
+            "note" => Self::Note,
+            "warning" | "caution" => Self::Warning,
+            "quote" | "blockquote" => Self::Quote,
+            "conjecture" | "conj" => Self::Conjecture,
+            "axiom" | "ax" => Self::Axiom,
+            "exercise" => Self::Exercise,
+            "solution" | "sol" => Self::Solution,
+            "case" => Self::Case,
             other => Self::Custom(other.to_string()),
         }
     }
@@ -155,13 +217,25 @@ impl EnvironmentKind {
             Self::Figure => "Figure",
             Self::Table => "Table",
             Self::Algorithm => "Algorithm",
+            Self::Abstract => "Abstract",
+            Self::Note => "Note",
+            Self::Warning => "Warning",
+            Self::Quote => "Quote",
+            Self::Conjecture => "Conjecture",
+            Self::Axiom => "Axiom",
+            Self::Exercise => "Exercise",
+            Self::Solution => "Solution",
+            Self::Case => "Case",
             Self::Custom(name) => name,
         }
     }
 
     /// Check if this environment should be numbered.
     pub fn is_numbered(&self) -> bool {
-        !matches!(self, Self::Proof)
+        !matches!(
+            self,
+            Self::Proof | Self::Abstract | Self::Note | Self::Warning | Self::Quote | Self::Case
+        )
     }
 }
 
@@ -188,6 +262,15 @@ pub enum Inline {
 
     /// Strikethrough text
     Strikethrough(Vec<Inline>),
+
+    /// Subscript text (e.g., H~2~O)
+    Subscript(Vec<Inline>),
+
+    /// Superscript text (e.g., x^2^ outside math mode)
+    Superscript(Vec<Inline>),
+
+    /// Small caps text
+    SmallCaps(Vec<Inline>),
 
     /// Inline code
     Code(String),
@@ -232,14 +315,30 @@ pub enum Inline {
     RawHtml(String),
 }
 
+/// Citation style.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum CitationStyle {
+    /// Parenthetical: (Author, Year) - default with [@key]
+    #[default]
+    Parenthetical,
+    /// Textual: Author (Year) - with @key
+    Textual,
+    /// Author only: Author - with @key-
+    AuthorOnly,
+    /// Year only: (Year) - with [-@key]
+    YearOnly,
+}
+
 /// Citation with optional locator.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Citation {
     /// Citation keys
     pub keys: Vec<String>,
+    /// Citation style
+    pub style: CitationStyle,
     /// Optional prefix (e.g., "see")
     pub prefix: Option<String>,
-    /// Optional locator (e.g., "p. 42")
+    /// Optional suffix/locator (e.g., "p. 42")
     pub locator: Option<String>,
 }
 

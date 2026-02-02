@@ -1,7 +1,7 @@
 //! Block-level parsing for Markdown.
 
-use crate::ast::{Alignment, Block, EnvironmentKind, ListItem};
-use crate::error::{ParseError, Result};
+use crate::ast::{Alignment, Block, DescriptionItem, EnvironmentKind, ListItem};
+use crate::error::Result;
 use crate::parser::inline::parse_inlines;
 use crate::parser::lexer::{
     block_quote_marker, environment_end, environment_start, fenced_code_end, fenced_code_start,
@@ -29,6 +29,14 @@ pub fn parse_blocks(input: &str) -> Result<Vec<Block>> {
         if let Some((block, consumed)) = try_parse_heading(line)? {
             blocks.push(block);
             i += consumed;
+        } else if let Some((block, consumed)) = try_parse_page_break(line)? {
+            // Check page breaks before thematic breaks (---pagebreak--- vs ---)
+            blocks.push(block);
+            i += consumed;
+        } else if let Some((block, consumed)) = try_parse_appendix_marker(line)? {
+            // Check appendix markers before thematic breaks
+            blocks.push(block);
+            i += consumed;
         } else if let Some((block, consumed)) = try_parse_thematic_break(line)? {
             blocks.push(block);
             i += consumed;
@@ -51,6 +59,9 @@ pub fn parse_blocks(input: &str) -> Result<Vec<Block>> {
             blocks.push(block);
             i += consumed;
         } else if let Some((block, consumed)) = try_parse_table(&lines[i..])? {
+            blocks.push(block);
+            i += consumed;
+        } else if let Some((block, consumed)) = try_parse_description_list(&lines[i..])? {
             blocks.push(block);
             i += consumed;
         } else {
@@ -603,6 +614,127 @@ fn extract_label(s: &str) -> (&str, Option<String>) {
         }
     }
     (s, None)
+}
+
+/// Parse a description list (term : definition).
+///
+/// Syntax:
+/// ```text
+/// Term 1
+/// : Definition of term 1
+///
+/// Term 2
+/// : Definition of term 2
+/// : Additional paragraph for term 2
+/// ```
+fn try_parse_description_list(lines: &[&str]) -> Result<Option<(Block, usize)>> {
+    // Look ahead for a term followed by a definition line starting with ':'
+    if lines.len() < 2 {
+        return Ok(None);
+    }
+
+    let first = lines[0].trim();
+    let second = lines[1].trim();
+
+    // First line must not start with ':' and second line must start with ':'
+    if first.starts_with(':') || !second.starts_with(':') {
+        return Ok(None);
+    }
+
+    let mut items = Vec::new();
+    let mut i = 0;
+
+    while i < lines.len() {
+        let term_line = lines[i].trim();
+
+        // Check if this looks like a term (non-empty, doesn't start with ':')
+        if term_line.is_empty() {
+            i += 1;
+            continue;
+        }
+
+        if term_line.starts_with(':') {
+            // Definition without term - end the list
+            break;
+        }
+
+        // Check if next line is a definition
+        if i + 1 >= lines.len() || !lines[i + 1].trim().starts_with(':') {
+            break;
+        }
+
+        // Parse the term
+        let term = parse_inlines(term_line)?;
+        i += 1;
+
+        // Collect all definition lines
+        let mut def_lines = Vec::new();
+        while i < lines.len() {
+            let line = lines[i].trim();
+            if line.starts_with(':') {
+                // Remove the ':' prefix
+                let content = line[1..].trim();
+                def_lines.push(content);
+                i += 1;
+            } else if line.is_empty() {
+                // Blank line might continue the definition
+                if i + 1 < lines.len() && lines[i + 1].trim().starts_with(':') {
+                    def_lines.push("");
+                    i += 1;
+                } else {
+                    break;
+                }
+            } else {
+                // New term or end of list
+                break;
+            }
+        }
+
+        let def_content = def_lines.join("\n");
+        let description = parse_blocks(&def_content)?;
+
+        items.push(DescriptionItem { term, description });
+    }
+
+    if items.is_empty() {
+        return Ok(None);
+    }
+
+    Ok(Some((Block::DescriptionList(items), i)))
+}
+
+/// Parse a page break marker.
+///
+/// Syntax: `---pagebreak---` or `\\pagebreak` or `\\newpage`
+fn try_parse_page_break(line: &str) -> Result<Option<(Block, usize)>> {
+    let trimmed = line.trim();
+
+    if trimmed == "---pagebreak---"
+        || trimmed == "\\pagebreak"
+        || trimmed == "\\newpage"
+        || trimmed == "<!-- pagebreak -->"
+        || trimmed == "<!-- newpage -->"
+    {
+        return Ok(Some((Block::PageBreak, 1)));
+    }
+
+    Ok(None)
+}
+
+/// Parse an appendix marker.
+///
+/// Syntax: `\\appendix` or `---appendix---`
+fn try_parse_appendix_marker(line: &str) -> Result<Option<(Block, usize)>> {
+    let trimmed = line.trim();
+
+    if trimmed == "\\appendix"
+        || trimmed == "---appendix---"
+        || trimmed == "<!-- appendix -->"
+    {
+        return Ok(Some((Block::AppendixMarker, 1)));
+    }
+
+    Ok(None)
 }
 
 #[cfg(test)]

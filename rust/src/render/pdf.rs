@@ -5,7 +5,7 @@
 
 #![cfg(feature = "pdf")]
 
-use crate::ast::{Block, EnvironmentKind, FootnoteKind, Inline, ResolvedDocument};
+use crate::ast::{Block, CitationStyle, DescriptionItem, EnvironmentKind, FootnoteKind, Inline, ResolvedDocument};
 use crate::error::{RenderError, Result};
 use genpdf::elements::{Break, Paragraph};
 use genpdf::{Document, Element, SimplePageDecorator};
@@ -397,6 +397,36 @@ impl<'a> PdfRenderer<'a> {
             Block::RawHtml(_) => {
                 // Skip raw HTML in PDF
             }
+            Block::DescriptionList(items) => {
+                pdf.push(Break::new(0.2));
+                for item in items {
+                    let term = self.inlines_to_string(&item.term);
+                    pdf.push(Paragraph::new(format!("{}:", term)));
+                    for inner_block in &item.description {
+                        if let Block::Paragraph(inlines) = inner_block {
+                            let text = self.inlines_to_string(inlines);
+                            pdf.push(Paragraph::new(format!("    {}", text)));
+                        }
+                    }
+                }
+                pdf.push(Break::new(0.3));
+            }
+            Block::PageBreak => {
+                pdf.push(genpdf::elements::PageBreak::new());
+            }
+            Block::Abstract(blocks) => {
+                pdf.push(Paragraph::new("Abstract"));
+                pdf.push(Break::new(0.3));
+                for inner_block in blocks {
+                    self.render_block(pdf, inner_block)?;
+                }
+                pdf.push(Break::new(0.5));
+            }
+            Block::AppendixMarker => {
+                pdf.push(genpdf::elements::PageBreak::new());
+                pdf.push(Paragraph::new("Appendices"));
+                pdf.push(Break::new(0.5));
+            }
         }
 
         Ok(())
@@ -559,7 +589,18 @@ impl<'a> PdfRenderer<'a> {
         for inline in inlines {
             match inline {
                 Inline::Text(t) => result.push_str(t),
-                Inline::Emphasis(inner) | Inline::Strong(inner) | Inline::Strikethrough(inner) => {
+                Inline::Emphasis(inner)
+                | Inline::Strong(inner)
+                | Inline::Strikethrough(inner)
+                | Inline::SmallCaps(inner) => {
+                    result.push_str(&self.inlines_to_string(inner));
+                }
+                Inline::Subscript(inner) => {
+                    result.push('_');
+                    result.push_str(&self.inlines_to_string(inner));
+                }
+                Inline::Superscript(inner) => {
+                    result.push('^');
                     result.push_str(&self.inlines_to_string(inner));
                 }
                 Inline::Code(c) => {
@@ -579,23 +620,68 @@ impl<'a> PdfRenderer<'a> {
                     result.push('$');
                 }
                 Inline::Citation(cite) => {
-                    let keys: Vec<String> = cite
-                        .keys
-                        .iter()
-                        .map(|k| {
-                            if let Some(entry) = self.doc.citations.get(k) {
-                                self.format_short_citation(entry)
-                            } else {
-                                k.clone()
-                            }
-                        })
-                        .collect();
+                    match cite.style {
+                        CitationStyle::Parenthetical => {
+                            let keys: Vec<String> = cite
+                                .keys
+                                .iter()
+                                .map(|k| {
+                                    if let Some(entry) = self.doc.citations.get(k) {
+                                        self.format_short_citation(entry)
+                                    } else {
+                                        k.clone()
+                                    }
+                                })
+                                .collect();
 
-                    let mut cite_text = format!("[{}]", keys.join("; "));
-                    if let Some(ref loc) = cite.locator {
-                        cite_text = format!("[{}, {}]", keys.join("; "), loc);
+                            let mut cite_text = format!("[{}]", keys.join("; "));
+                            if let Some(ref loc) = cite.locator {
+                                cite_text = format!("[{}, {}]", keys.join("; "), loc);
+                            }
+                            result.push_str(&cite_text);
+                        }
+                        CitationStyle::Textual => {
+                            for (i, key) in cite.keys.iter().enumerate() {
+                                if i > 0 {
+                                    result.push_str(", ");
+                                }
+                                if let Some(entry) = self.doc.citations.get(key) {
+                                    let (author, year) = self.format_author_year(entry);
+                                    result.push_str(&format!("{} ({})", author, year));
+                                } else {
+                                    result.push_str(key);
+                                }
+                            }
+                        }
+                        CitationStyle::AuthorOnly => {
+                            for (i, key) in cite.keys.iter().enumerate() {
+                                if i > 0 {
+                                    result.push_str(", ");
+                                }
+                                if let Some(entry) = self.doc.citations.get(key) {
+                                    let (author, _) = self.format_author_year(entry);
+                                    result.push_str(&author);
+                                } else {
+                                    result.push_str(key);
+                                }
+                            }
+                        }
+                        CitationStyle::YearOnly => {
+                            result.push('(');
+                            for (i, key) in cite.keys.iter().enumerate() {
+                                if i > 0 {
+                                    result.push_str(", ");
+                                }
+                                if let Some(entry) = self.doc.citations.get(key) {
+                                    let (_, year) = self.format_author_year(entry);
+                                    result.push_str(&year);
+                                } else {
+                                    result.push_str(key);
+                                }
+                            }
+                            result.push(')');
+                        }
                     }
-                    result.push_str(&cite_text);
                 }
                 Inline::Reference { label, resolved } => {
                     let fallback = format!("??{}", label);
@@ -641,6 +727,55 @@ impl<'a> PdfRenderer<'a> {
         } else {
             format!("{}, {}", author, year)
         }
+    }
+
+    fn format_author_year(&self, entry: &crate::ast::BibEntry) -> (String, String) {
+        let author = if entry.authors.len() > 2 {
+            let first = entry.authors.first().map(|a| {
+                if let Some(comma) = a.find(',') {
+                    &a[..comma]
+                } else if let Some(space) = a.rfind(' ') {
+                    &a[space + 1..]
+                } else {
+                    a.as_str()
+                }
+            }).unwrap_or("Unknown");
+            format!("{} et al.", first)
+        } else if entry.authors.len() == 2 {
+            let first = entry.authors.first().map(|a| {
+                if let Some(comma) = a.find(',') {
+                    &a[..comma]
+                } else if let Some(space) = a.rfind(' ') {
+                    &a[space + 1..]
+                } else {
+                    a.as_str()
+                }
+            }).unwrap_or("Unknown");
+            let second = entry.authors.get(1).map(|a| {
+                if let Some(comma) = a.find(',') {
+                    &a[..comma]
+                } else if let Some(space) = a.rfind(' ') {
+                    &a[space + 1..]
+                } else {
+                    a.as_str()
+                }
+            }).unwrap_or("Unknown");
+            format!("{} & {}", first, second)
+        } else {
+            entry.authors.first().map(|a| {
+                if let Some(comma) = a.find(',') {
+                    a[..comma].to_string()
+                } else if let Some(space) = a.rfind(' ') {
+                    a[space + 1..].to_string()
+                } else {
+                    a.to_string()
+                }
+            }).unwrap_or_else(|| "Unknown".to_string())
+        };
+
+        let year = entry.year.as_deref().unwrap_or("n.d.").to_string();
+
+        (author, year)
     }
 }
 
