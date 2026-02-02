@@ -1,0 +1,33 @@
+[package]
+name = "markdown-academic"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+authors = ["Joseph R. Quinn <quinn.josephr@protonmail.com>"]
+description = "A Markdown extension for academic writing: math, citations, cross-references, and more"
+repository = "https://github.com/quinnjr/markdown-academic"
+keywords = ["markdown", "academic", "parser", "citations", "mda"]
+categories = ["parsing", "text-processing"]
+
+[lib]
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[features]
+default = []
+wasm = ["wasm-bindgen", "js-sys"]
+mathml = ["latex2mathml"]
+
+[dependencies]
+nom = "7"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+thiserror = "1"
+libc = "0.2"
+
+# Optional dependencies
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+latex2mathml = { version = "0.2", optional = true }
+
+[dev-dependencies]
+pretty_assertions = "1"
