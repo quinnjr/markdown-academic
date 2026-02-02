@@ -3,8 +3,14 @@
 pub mod html;
 pub mod math;
 
+#[cfg(feature = "pdf")]
+pub mod pdf;
+
 pub use html::{render_html, HtmlConfig};
 pub use math::{MathBackend, MathRenderer};
+
+#[cfg(feature = "pdf")]
+pub use pdf::{render_pdf, render_pdf_to_file, PageMargins, PaperSize, PdfConfig};
 
 use crate::ast::ResolvedDocument;
 use crate::error::Result;

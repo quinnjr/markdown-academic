@@ -191,3 +191,67 @@ class TestVersion:
         """Test that version string exists."""
         assert mda.__version__
         assert isinstance(mda.__version__, str)
+
+
+class TestPdf:
+    """Tests for PDF generation."""
+
+    def test_has_pdf_support(self):
+        """Test that PDF support check works."""
+        result = mda.has_pdf_support()
+        assert isinstance(result, bool)
+
+    def test_render_pdf_basic(self):
+        """Test basic PDF generation."""
+        if not mda.has_pdf_support():
+            pytest.skip("PDF support not available")
+        
+        pdf_bytes = mda.render_pdf("# Hello\n\nWorld")
+        assert isinstance(pdf_bytes, bytes)
+        assert len(pdf_bytes) > 0
+        assert pdf_bytes[:4] == b"%PDF"  # Valid PDF header
+
+    def test_render_pdf_with_math(self):
+        """Test PDF generation with math."""
+        if not mda.has_pdf_support():
+            pytest.skip("PDF support not available")
+        
+        pdf_bytes = mda.render_pdf("# Test\n\n$E=mc^2$")
+        assert pdf_bytes[:4] == b"%PDF"
+
+    def test_render_pdf_config_options(self):
+        """Test PDF configuration options."""
+        if not mda.has_pdf_support():
+            pytest.skip("PDF support not available")
+        
+        pdf_bytes = mda.render_pdf(
+            "# Test",
+            paper_size=mda.PaperSize.A4,
+            font_size=12,
+            title="Test Document",
+        )
+        assert pdf_bytes[:4] == b"%PDF"
+
+    def test_render_pdf_to_file(self, tmp_path):
+        """Test PDF file writing."""
+        if not mda.has_pdf_support():
+            pytest.skip("PDF support not available")
+        
+        output_file = tmp_path / "test.pdf"
+        mda.render_pdf_to_file("# Hello", output_file)
+        
+        assert output_file.exists()
+        assert output_file.read_bytes()[:4] == b"%PDF"
+
+    def test_paper_sizes(self):
+        """Test paper size enum values."""
+        assert mda.PaperSize.LETTER == 0
+        assert mda.PaperSize.A4 == 1
+
+    def test_pdf_config_dataclass(self):
+        """Test PdfConfig dataclass."""
+        config = mda.PdfConfig()
+        assert config.paper_size == mda.PaperSize.LETTER
+        assert config.font_size == 11
+        assert config.title_page is False
+        assert config.page_numbers is True

@@ -11,8 +11,8 @@ import ctypes
 import os
 import platform
 import sys
-from ctypes import POINTER, Structure, c_char_p, c_int, c_void_p
-from dataclasses import dataclass
+from ctypes import POINTER, Structure, c_char_p, c_int, c_size_t, c_uint8, c_void_p
+from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
 from typing import Optional, Union
@@ -36,6 +36,12 @@ class RenderError(MarkdownAcademicError):
     pass
 
 
+class PdfError(MarkdownAcademicError):
+    """Raised when PDF generation fails."""
+
+    pass
+
+
 class MathBackend(IntEnum):
     """Math rendering backend options."""
 
@@ -47,6 +53,16 @@ class MathBackend(IntEnum):
 
     MATHML = 2
     """MathML - native browser rendering, no JavaScript."""
+
+
+class PaperSize(IntEnum):
+    """Paper size options for PDF generation."""
+
+    LETTER = 0
+    """US Letter (8.5" x 11")."""
+
+    A4 = 1
+    """ISO A4 (210mm x 297mm)."""
 
 
 @dataclass
@@ -65,6 +81,27 @@ class RenderConfig:
     base_path: Optional[str] = None
 
 
+@dataclass
+class PdfConfig:
+    """Configuration options for PDF generation.
+
+    Attributes:
+        paper_size: Paper size (default: Letter).
+        font_size: Font size in points (default: 11).
+        title_page: If True, include a title page.
+        page_numbers: If True, include page numbers.
+        title: Document title for PDF metadata.
+        base_path: Base path for resolving relative file paths.
+    """
+
+    paper_size: PaperSize = PaperSize.LETTER
+    font_size: int = 11
+    title_page: bool = False
+    page_numbers: bool = True
+    title: Optional[str] = None
+    base_path: Optional[str] = None
+
+
 class _MdAcademicConfig(Structure):
     """C struct for configuration."""
 
@@ -80,6 +117,29 @@ class _MdAcademicResult(Structure):
 
     _fields_ = [
         ("data", c_char_p),
+        ("error", c_char_p),
+    ]
+
+
+class _MdAcademicPdfConfig(Structure):
+    """C struct for PDF configuration."""
+
+    _fields_ = [
+        ("paper_size", c_int),
+        ("font_size", c_int),
+        ("title_page", c_int),
+        ("page_numbers", c_int),
+        ("title", c_char_p),
+        ("base_path", c_char_p),
+    ]
+
+
+class _MdAcademicPdfResult(Structure):
+    """C struct for PDF results."""
+
+    _fields_ = [
+        ("data", POINTER(c_uint8)),
+        ("len", c_size_t),
         ("error", c_char_p),
     ]
 
@@ -196,6 +256,36 @@ class _Library:
         # mdacademic_version
         self._lib.mdacademic_version.argtypes = []
         self._lib.mdacademic_version.restype = c_char_p
+
+        # PDF functions (may not be available if compiled without pdf feature)
+        try:
+            # mdacademic_render_pdf
+            self._lib.mdacademic_render_pdf.argtypes = [
+                c_char_p,
+                POINTER(_MdAcademicPdfConfig),
+            ]
+            self._lib.mdacademic_render_pdf.restype = _MdAcademicPdfResult
+
+            # mdacademic_render_pdf_to_file
+            self._lib.mdacademic_render_pdf_to_file.argtypes = [
+                c_char_p,
+                POINTER(_MdAcademicPdfConfig),
+                c_char_p,
+            ]
+            self._lib.mdacademic_render_pdf_to_file.restype = c_int
+
+            # mdacademic_free_pdf_data
+            self._lib.mdacademic_free_pdf_data.argtypes = [POINTER(c_uint8), c_size_t]
+            self._lib.mdacademic_free_pdf_data.restype = None
+
+            self._has_pdf = True
+        except AttributeError:
+            self._has_pdf = False
+
+    @property
+    def has_pdf(self) -> bool:
+        """Check if PDF support is available."""
+        return self._has_pdf
 
     @property
     def lib(self) -> ctypes.CDLL:
@@ -421,3 +511,165 @@ def get_library_version() -> str:
     library = _Library()
     version = library.lib.mdacademic_version()
     return version.decode("utf-8")
+
+
+def has_pdf_support() -> bool:
+    """Check if PDF support is available.
+
+    Returns:
+        True if the library was compiled with PDF support.
+    """
+    library = _Library()
+    return library.has_pdf
+
+
+def _make_pdf_config(config: Optional[PdfConfig]) -> _MdAcademicPdfConfig:
+    """Create a C PDF config struct from Python config."""
+    if config is None:
+        config = PdfConfig()
+
+    c_config = _MdAcademicPdfConfig()
+    c_config.paper_size = int(config.paper_size)
+    c_config.font_size = config.font_size
+    c_config.title_page = 1 if config.title_page else 0
+    c_config.page_numbers = 1 if config.page_numbers else 0
+    c_config.title = config.title.encode("utf-8") if config.title else None
+    c_config.base_path = config.base_path.encode("utf-8") if config.base_path else None
+
+    return c_config
+
+
+def render_pdf(
+    text: str,
+    *,
+    paper_size: PaperSize = PaperSize.LETTER,
+    font_size: int = 11,
+    title_page: bool = False,
+    page_numbers: bool = True,
+    title: Optional[str] = None,
+    base_path: Optional[str] = None,
+) -> bytes:
+    """Render markdown-academic text to PDF.
+
+    This function converts a markdown-academic document to PDF format.
+
+    Args:
+        text: The markdown-academic source text.
+        paper_size: Paper size (default: Letter).
+        font_size: Font size in points (default: 11).
+        title_page: If True, include a title page.
+        page_numbers: If True, include page numbers.
+        title: Document title for PDF metadata.
+        base_path: Base path for resolving relative paths.
+
+    Returns:
+        The PDF content as bytes.
+
+    Raises:
+        PdfError: If PDF generation fails.
+        MarkdownAcademicError: If PDF support is not available.
+
+    Example:
+        >>> pdf_bytes = render_pdf("# Hello\\n\\n$E=mc^2$")
+        >>> with open("output.pdf", "wb") as f:
+        ...     f.write(pdf_bytes)
+    """
+    library = _Library()
+
+    if not library.has_pdf:
+        raise MarkdownAcademicError(
+            "PDF support is not available. "
+            "Rebuild the Rust library with: cargo build --release --features pdf"
+        )
+
+    config = PdfConfig(
+        paper_size=paper_size,
+        font_size=font_size,
+        title_page=title_page,
+        page_numbers=page_numbers,
+        title=title,
+        base_path=base_path,
+    )
+    c_config = _make_pdf_config(config)
+
+    result = library.lib.mdacademic_render_pdf(
+        text.encode("utf-8"),
+        ctypes.byref(c_config),
+    )
+
+    try:
+        if result.error:
+            error_msg = result.error.decode("utf-8")
+            library.lib.mdacademic_free_string(result.error)
+            raise PdfError(error_msg)
+
+        if not result.data or result.len == 0:
+            raise PdfError("No PDF data returned")
+
+        # Copy the data before freeing
+        pdf_bytes = bytes(result.data[: result.len])
+        return pdf_bytes
+    finally:
+        if result.data and result.len > 0:
+            library.lib.mdacademic_free_pdf_data(result.data, result.len)
+
+
+def render_pdf_to_file(
+    text: str,
+    output_path: Union[str, Path],
+    *,
+    paper_size: PaperSize = PaperSize.LETTER,
+    font_size: int = 11,
+    title_page: bool = False,
+    page_numbers: bool = True,
+    title: Optional[str] = None,
+    base_path: Optional[str] = None,
+) -> None:
+    """Render markdown-academic text to a PDF file.
+
+    This function converts a markdown-academic document to PDF format
+    and writes it directly to a file.
+
+    Args:
+        text: The markdown-academic source text.
+        output_path: Path to the output PDF file.
+        paper_size: Paper size (default: Letter).
+        font_size: Font size in points (default: 11).
+        title_page: If True, include a title page.
+        page_numbers: If True, include page numbers.
+        title: Document title for PDF metadata.
+        base_path: Base path for resolving relative paths.
+
+    Raises:
+        PdfError: If PDF generation fails.
+        MarkdownAcademicError: If PDF support is not available.
+
+    Example:
+        >>> render_pdf_to_file("# Hello\\n\\n$E=mc^2$", "output.pdf")
+    """
+    library = _Library()
+
+    if not library.has_pdf:
+        raise MarkdownAcademicError(
+            "PDF support is not available. "
+            "Rebuild the Rust library with: cargo build --release --features pdf"
+        )
+
+    config = PdfConfig(
+        paper_size=paper_size,
+        font_size=font_size,
+        title_page=title_page,
+        page_numbers=page_numbers,
+        title=title,
+        base_path=base_path,
+    )
+    c_config = _make_pdf_config(config)
+
+    result = library.lib.mdacademic_render_pdf_to_file(
+        text.encode("utf-8"),
+        ctypes.byref(c_config),
+        str(output_path).encode("utf-8"),
+    )
+
+    if result != 0:
+        raise PdfError(f"Failed to write PDF to {output_path}")

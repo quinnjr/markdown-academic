@@ -569,6 +569,49 @@ match parse(input) {
         eprintln!("Error: {}", e);
     }
 }</code></pre>
+
+                <h3 class="text-xl font-semibold mt-10 mb-4">PDF Generation</h3>
+                <p class="mb-4">Generate PDF documents by enabling the <code>pdf</code> feature:</p>
+<pre><code># Cargo.toml
+[dependencies]
+markdown-academic = { version = "0.1", features = ["pdf"] }</code></pre>
+
+                <h4 class="font-semibold mt-6 mb-3">Basic PDF Usage</h4>
+<pre><code>use markdown_academic::{parse, resolve, render_pdf, ResolveConfig, PdfConfig};
+
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let input = "# My Document\n\nContent with math: $E=mc^2$";
+    
+    let doc = parse(input)?;
+    let resolved = resolve(doc, &ResolveConfig::default())?;
+    
+    // Render to PDF bytes
+    let pdf_bytes = render_pdf(&resolved, &PdfConfig::default())?;
+    std::fs::write("output.pdf", pdf_bytes)?;
+    
+    Ok(())
+}</code></pre>
+
+                <h4 class="font-semibold mt-6 mb-3">PdfConfig Options</h4>
+<pre><code>use markdown_academic::{PdfConfig, PaperSize};
+
+let config = PdfConfig {
+    paper_size: PaperSize::A4,  // Letter (default) or A4
+    font_size: 11,              // Points (default: 11)
+    title_page: true,           // Include title page
+    page_numbers: true,         // Include page numbers
+    title: Some("My Document".to_string()),
+    ..Default::default()
+};</code></pre>
+
+                <h4 class="font-semibold mt-6 mb-3">Convenience Functions</h4>
+<pre><code>use markdown_academic::{render_to_pdf, render_to_pdf_file};
+
+// Get PDF bytes directly
+let pdf = render_to_pdf(input, None, None)?;
+
+// Write to file directly
+render_to_pdf_file(input, None, None, "output.pdf")?;</code></pre>
             </section>
 
             <!-- FFI -->
@@ -634,7 +677,52 @@ const char* mdacademic_version(void);
 
 #endif</code></pre>
 
-                <h3 class="text-xl font-semibold mt-10 mb-4">Python Example (ctypes)</h3>
+                <h3 class="text-xl font-semibold mt-10 mb-4">Python Package</h3>
+                <p class="mb-4">The recommended way to use markdown-academic from Python is with the included package:</p>
+<pre><code># Install (requires building the Rust library first)
+cd rust && cargo build --release --features pdf
+cd ../python && pip install -e .
+
+# Basic usage
+import markdown_academic as mda
+
+# Render to HTML
+html = mda.render("# Hello\n\nThe equation $E=mc^2$ is famous.")
+print(html)
+
+# Render complete HTML document
+html = mda.render("# Hello", standalone=True)
+
+# Choose math backend
+html = mda.render("$x^2$", math_backend=mda.MathBackend.MATHJAX)</code></pre>
+
+                <h4 class="font-semibold mt-6 mb-3">PDF Generation</h4>
+<pre><code>import markdown_academic as mda
+
+# Check if PDF support is available
+if mda.has_pdf_support():
+    # Render to PDF bytes
+    pdf_bytes = mda.render_pdf("# My Document\n\n$E=mc^2$")
+    with open("output.pdf", "wb") as f:
+        f.write(pdf_bytes)
+    
+    # Or write directly to file
+    mda.render_pdf_to_file(
+        "# My Document",
+        "output.pdf",
+        paper_size=mda.PaperSize.A4,
+        title="My Document"
+    )</code></pre>
+
+                <h4 class="font-semibold mt-6 mb-3">Document Class</h4>
+<pre><code>import markdown_academic as mda
+
+# Parse once, render multiple times
+with mda.Document("# Hello $E=mc^2$") as doc:
+    html_fragment = doc.render()
+    html_full = doc.render(standalone=True)</code></pre>
+
+                <h3 class="text-xl font-semibold mt-10 mb-4">Low-level ctypes (for reference)</h3>
 <pre><code>import ctypes
 from ctypes import c_char_p, c_int, POINTER, Structure
 

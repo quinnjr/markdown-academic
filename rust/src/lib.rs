@@ -123,6 +123,7 @@
 //!
 //! - `mathml`: Enable MathML rendering backend (requires `latex2mathml` crate)
 //! - `wasm`: Enable WebAssembly bindings (requires `wasm-bindgen`)
+//! - `pdf`: Enable PDF output (requires `genpdf` crate)
 
 // Re-export main types and functions for public API
 pub mod ast;
@@ -146,6 +147,10 @@ pub use parser::parse;
 pub use render::{render_html, HtmlConfig, MathBackend};
 pub use resolve::{resolve, ResolveConfig};
 
+// PDF exports (feature-gated)
+#[cfg(feature = "pdf")]
+pub use render::{render_pdf, render_pdf_to_file, PageMargins, PaperSize, PdfConfig};
+
 /// Parse, resolve, and render Markdown to HTML in one step.
 ///
 /// This is a convenience function that combines `parse`, `resolve`, and `render_html`.
@@ -166,6 +171,54 @@ pub fn render(
     let doc = parse(input)?;
     let resolved = resolve(doc, resolve_config.unwrap_or(&ResolveConfig::default()))?;
     render_html(&resolved, html_config.unwrap_or(&HtmlConfig::default()))
+}
+
+/// Parse, resolve, and render Markdown to PDF in one step.
+///
+/// This is a convenience function that combines `parse`, `resolve`, and `render_pdf`.
+/// Requires the `pdf` feature.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use markdown_academic::{render_to_pdf, PdfConfig};
+///
+/// let pdf_bytes = render_to_pdf("# Hello *world*", None, None).unwrap();
+/// std::fs::write("output.pdf", pdf_bytes).unwrap();
+/// ```
+#[cfg(feature = "pdf")]
+pub fn render_to_pdf(
+    input: &str,
+    resolve_config: Option<&ResolveConfig>,
+    pdf_config: Option<&PdfConfig>,
+) -> Result<Vec<u8>> {
+    let doc = parse(input)?;
+    let resolved = resolve(doc, resolve_config.unwrap_or(&ResolveConfig::default()))?;
+    render_pdf(&resolved, pdf_config.unwrap_or(&PdfConfig::default()))
+}
+
+/// Parse, resolve, and render Markdown to a PDF file.
+///
+/// This is a convenience function that combines `parse`, `resolve`, and `render_pdf_to_file`.
+/// Requires the `pdf` feature.
+///
+/// # Example
+///
+/// ```rust,ignore
+/// use markdown_academic::render_to_pdf_file;
+///
+/// render_to_pdf_file("# Hello", None, None, "output.pdf").unwrap();
+/// ```
+#[cfg(feature = "pdf")]
+pub fn render_to_pdf_file(
+    input: &str,
+    resolve_config: Option<&ResolveConfig>,
+    pdf_config: Option<&PdfConfig>,
+    path: impl AsRef<std::path::Path>,
+) -> Result<()> {
+    let doc = parse(input)?;
+    let resolved = resolve(doc, resolve_config.unwrap_or(&ResolveConfig::default()))?;
+    render_pdf_to_file(&resolved, pdf_config.unwrap_or(&PdfConfig::default()), path)
 }
 
 #[cfg(test)]

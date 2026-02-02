@@ -295,6 +295,269 @@ pub extern "C" fn mdacademic_version() -> *const c_char {
     VERSION.as_ptr() as *const c_char
 }
 
+// PDF FFI functions (feature-gated)
+
+/// PDF configuration for FFI.
+#[cfg(feature = "pdf")]
+#[repr(C)]
+pub struct MdAcademicPdfConfig {
+    /// Paper size: 0 = Letter, 1 = A4
+    pub paper_size: c_int,
+    /// Font size in points
+    pub font_size: c_int,
+    /// Whether to include a title page
+    pub title_page: c_int,
+    /// Whether to include page numbers
+    pub page_numbers: c_int,
+    /// Document title (null for none)
+    pub title: *const c_char,
+    /// Base path for resolving relative paths
+    pub base_path: *const c_char,
+}
+
+/// PDF result containing raw bytes.
+#[cfg(feature = "pdf")]
+#[repr(C)]
+pub struct MdAcademicPdfResult {
+    /// Pointer to PDF bytes (caller must free with mdacademic_free_pdf_data)
+    pub data: *mut u8,
+    /// Length of PDF data in bytes
+    pub len: usize,
+    /// Error message if data is null (caller must free with mdacademic_free_string)
+    pub error: *mut c_char,
+}
+
+/// Parse and render to PDF in one step.
+///
+/// # Safety
+///
+/// - `input` must be a valid null-terminated UTF-8 string.
+/// - The returned PDF data must be freed with `mdacademic_free_pdf_data`.
+/// - The error string (if any) must be freed with `mdacademic_free_string`.
+#[cfg(feature = "pdf")]
+#[no_mangle]
+pub unsafe extern "C" fn mdacademic_render_pdf(
+    input: *const c_char,
+    config: *const MdAcademicPdfConfig,
+) -> MdAcademicPdfResult {
+    use crate::render::{render_pdf, PaperSize, PdfConfig};
+
+    if input.is_null() {
+        return MdAcademicPdfResult {
+            data: ptr::null_mut(),
+            len: 0,
+            error: CString::new("Null input pointer")
+                .unwrap()
+                .into_raw(),
+        };
+    }
+
+    let input = match CStr::from_ptr(input).to_str() {
+        Ok(s) => s,
+        Err(_) => {
+            return MdAcademicPdfResult {
+                data: ptr::null_mut(),
+                len: 0,
+                error: CString::new("Invalid UTF-8 input")
+                    .unwrap()
+                    .into_raw(),
+            }
+        }
+    };
+
+    let doc = match parse(input) {
+        Ok(d) => d,
+        Err(e) => {
+            return MdAcademicPdfResult {
+                data: ptr::null_mut(),
+                len: 0,
+                error: CString::new(format!("Parse error: {}", e))
+                    .unwrap()
+                    .into_raw(),
+            }
+        }
+    };
+
+    let resolve_config = if config.is_null() {
+        ResolveConfig::default()
+    } else {
+        let cfg = &*config;
+        ResolveConfig {
+            base_path: if cfg.base_path.is_null() {
+                None
+            } else {
+                CStr::from_ptr(cfg.base_path)
+                    .to_str()
+                    .ok()
+                    .map(String::from)
+            },
+            ..Default::default()
+        }
+    };
+
+    let resolved = match resolve(doc, &resolve_config) {
+        Ok(r) => r,
+        Err(e) => {
+            return MdAcademicPdfResult {
+                data: ptr::null_mut(),
+                len: 0,
+                error: CString::new(format!("Resolution error: {}", e))
+                    .unwrap()
+                    .into_raw(),
+            }
+        }
+    };
+
+    let pdf_config = if config.is_null() {
+        PdfConfig::default()
+    } else {
+        let cfg = &*config;
+        PdfConfig {
+            paper_size: if cfg.paper_size == 1 {
+                PaperSize::A4
+            } else {
+                PaperSize::Letter
+            },
+            font_size: if cfg.font_size > 0 {
+                cfg.font_size as u8
+            } else {
+                11
+            },
+            title_page: cfg.title_page != 0,
+            page_numbers: cfg.page_numbers != 0,
+            title: if cfg.title.is_null() {
+                None
+            } else {
+                CStr::from_ptr(cfg.title).to_str().ok().map(String::from)
+            },
+            ..Default::default()
+        }
+    };
+
+    match render_pdf(&resolved, &pdf_config) {
+        Ok(mut bytes) => {
+            let data = bytes.as_mut_ptr();
+            let len = bytes.len();
+            std::mem::forget(bytes); // Prevent deallocation
+            MdAcademicPdfResult {
+                data,
+                len,
+                error: ptr::null_mut(),
+            }
+        }
+        Err(e) => MdAcademicPdfResult {
+            data: ptr::null_mut(),
+            len: 0,
+            error: CString::new(format!("Render error: {}", e))
+                .unwrap()
+                .into_raw(),
+        },
+    }
+}
+
+/// Free PDF data returned by mdacademic_render_pdf.
+///
+/// # Safety
+///
+/// - `data` and `len` must be from a MdAcademicPdfResult.
+#[cfg(feature = "pdf")]
+#[no_mangle]
+pub unsafe extern "C" fn mdacademic_free_pdf_data(data: *mut u8, len: usize) {
+    if !data.is_null() && len > 0 {
+        // Reconstruct the Vec and drop it
+        let _ = Vec::from_raw_parts(data, len, len);
+    }
+}
+
+/// Write PDF directly to a file.
+///
+/// # Safety
+///
+/// - `input` must be a valid null-terminated UTF-8 string.
+/// - `path` must be a valid null-terminated UTF-8 file path.
+/// - Returns 0 on success, -1 on error.
+#[cfg(feature = "pdf")]
+#[no_mangle]
+pub unsafe extern "C" fn mdacademic_render_pdf_to_file(
+    input: *const c_char,
+    config: *const MdAcademicPdfConfig,
+    path: *const c_char,
+) -> c_int {
+    use crate::render::{render_pdf_to_file, PaperSize, PdfConfig};
+
+    if input.is_null() || path.is_null() {
+        return -1;
+    }
+
+    let input = match CStr::from_ptr(input).to_str() {
+        Ok(s) => s,
+        Err(_) => return -1,
+    };
+
+    let path_str = match CStr::from_ptr(path).to_str() {
+        Ok(s) => s,
+        Err(_) => return -1,
+    };
+
+    let doc = match parse(input) {
+        Ok(d) => d,
+        Err(_) => return -1,
+    };
+
+    let resolve_config = if config.is_null() {
+        ResolveConfig::default()
+    } else {
+        let cfg = &*config;
+        ResolveConfig {
+            base_path: if cfg.base_path.is_null() {
+                None
+            } else {
+                CStr::from_ptr(cfg.base_path)
+                    .to_str()
+                    .ok()
+                    .map(String::from)
+            },
+            ..Default::default()
+        }
+    };
+
+    let resolved = match resolve(doc, &resolve_config) {
+        Ok(r) => r,
+        Err(_) => return -1,
+    };
+
+    let pdf_config = if config.is_null() {
+        PdfConfig::default()
+    } else {
+        let cfg = &*config;
+        PdfConfig {
+            paper_size: if cfg.paper_size == 1 {
+                PaperSize::A4
+            } else {
+                PaperSize::Letter
+            },
+            font_size: if cfg.font_size > 0 {
+                cfg.font_size as u8
+            } else {
+                11
+            },
+            title_page: cfg.title_page != 0,
+            page_numbers: cfg.page_numbers != 0,
+            title: if cfg.title.is_null() {
+                None
+            } else {
+                CStr::from_ptr(cfg.title).to_str().ok().map(String::from)
+            },
+            ..Default::default()
+        }
+    };
+
+    match render_pdf_to_file(&resolved, &pdf_config, path_str) {
+        Ok(()) => 0,
+        Err(_) => -1,
+    }
+}
+
 // Generate C header content for documentation
 /// ```c
 /// // markdown_academic.h

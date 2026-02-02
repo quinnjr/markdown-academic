@@ -16,6 +16,7 @@ crate-type = ["lib", "cdylib", "staticlib"]
 default = []
 wasm = ["wasm-bindgen", "js-sys"]
 mathml = ["latex2mathml"]
+pdf = ["genpdf"]
 
 [dependencies]
 nom = "7"
@@ -28,6 +29,7 @@ libc = "0.2"
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
 latex2mathml = { version = "0.2", optional = true }
+genpdf = { version = "0.2", optional = true }
 
 [dev-dependencies]
 pretty_assertions = "1"
