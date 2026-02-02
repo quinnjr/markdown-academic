@@ -1,6 +1,21 @@
 # Rust
 rust/target/
 
+# Python
+python/__pycache__/
+python/**/__pycache__/
+python/*.egg-info/
+python/dist/
+python/build/
+python/.eggs/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
 # IDE
 .idea/
 .vscode/
