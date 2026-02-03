@@ -25,7 +25,7 @@ pdf = ["genpdf"]
 editor = ["eframe", "egui_extras", "rfd"]
 
 [dependencies]
-nom = "7"
+nom = "8"
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 thiserror = "1"
