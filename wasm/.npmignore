@@ -1,0 +1,99 @@
+# ========================================
+# .npmignore for markdown-academic
+# ========================================
+
+# Source files (dist/ contains compiled output)
+src/
+
+# Tests
+tests/
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+vitest.config.ts
+vitest.config.js
+coverage/
+.nyc_output/
+
+# Build scripts and config
+scripts/
+tsconfig.json
+tsconfig.*.json
+
+# Examples (available on GitHub)
+examples/
+
+# Development config
+.gitignore
+.eslintrc*
+.eslintignore
+.prettierrc*
+.prettierignore
+.editorconfig
+.env*
+!.env.example
+
+# IDE and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Lock files (not needed for consumers)
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+shrinkwrap.json
+
+# Node modules
+node_modules/
+
+# Rust/WASM source (dist/pkg has compiled output)
+*.rs
+Cargo.toml
+Cargo.lock
+target/
+.cargo/
+
+# Git
+.git/
+.gitattributes
+.github/
+
+# CI/CD
+.travis.yml
+.circleci/
+.gitlab-ci.yml
+azure-pipelines.yml
+Jenkinsfile
+
+# Documentation source (README.md is included)
+docs/
+*.md
+!README.md
+
+# Misc
+*.tgz
+*.tar.gz
+*.zip
+.npmrc
+.yarnrc

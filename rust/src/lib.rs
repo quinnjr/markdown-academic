@@ -133,7 +133,8 @@ pub mod parser;
 pub mod render;
 pub mod resolve;
 
-// FFI module (always compiled for cdylib)
+// FFI module (only for non-WASM builds)
+#[cfg(not(target_arch = "wasm32"))]
 pub mod ffi;
 
 // WASM module (only with feature)

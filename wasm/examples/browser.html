@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>markdown-academic WASM Demo</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            margin-top: 0;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .panel {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #666;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        #editor {
+            width: 100%;
+            height: 500px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            tab-size: 2;
+        }
+        #preview {
+            min-height: 500px;
+            overflow: auto;
+            line-height: 1.6;
+        }
+        #preview h1, #preview h2, #preview h3 {
+            color: #333;
+            margin-top: 1.5em;
+        }
+        #preview h1:first-child {
+            margin-top: 0;
+        }
+        #preview code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        #preview pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        #preview pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+        #preview blockquote {
+            border-left: 4px solid #8b2332;
+            margin: 1em 0;
+            padding: 0.5em 1em;
+            background: #fef9f9;
+        }
+        #preview .mda-theorem, #preview .mda-definition, #preview .mda-lemma {
+            background: #f0f7ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 1em 0;
+            border-radius: 0 6px 6px 0;
+        }
+        #preview .mda-proof {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 1em 0;
+            border-radius: 6px;
+        }
+        .error {
+            color: #dc2626;
+            background: #fef2f2;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #fecaca;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .toolbar button {
+            padding: 8px 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .toolbar button:hover {
+            background: #2563eb;
+        }
+        .toolbar select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        #status {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+        #doc-info {
+            font-size: 13px;
+            color: #666;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📝 markdown-academic WASM Demo</h1>
+    
+    <div class="toolbar">
+        <button onclick="insertSnippet('math')">Insert Math</button>
+        <button onclick="insertSnippet('theorem')">Insert Theorem</button>
+        <button onclick="insertSnippet('citation')">Insert Citation</button>
+        <label>
+            Math Backend:
+            <select id="mathBackend" onchange="updatePreview()">
+                <option value="katex">KaTeX</option>
+                <option value="mathjax">MathJax</option>
+                <option value="mathml">MathML</option>
+            </select>
+        </label>
+        <label>
+            <input type="checkbox" id="standalone" onchange="updatePreview()"> Standalone HTML
+        </label>
+    </div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>Editor</h2>
+            <textarea id="editor" spellcheck="false">+++
+title = "Example Document"
+authors = ["Your Name"]
+date = "2026-02-03"
++++
+
+# Introduction {#sec:intro}
+
+Welcome to **markdown-academic**! This demonstrates the WASM bindings.
+
+## Math Support {#sec:math}
+
+Inline math like $E = mc^2$ works seamlessly. Display math too:
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$ {#eq:gaussian}
+
+See Equation @eq:gaussian for the Gaussian integral.
+
+## Environments {#sec:env}
+
+::: theorem {#thm:fermat}
+**Fermat's Last Theorem.** For any integer $n > 2$, the equation $a^n + b^n = c^n$ has no positive integer solutions.
+:::
+
+::: proof
+The proof was completed by Andrew Wiles in 1995, building on work by many mathematicians.
+:::
+
+## Cross-References
+
+- See @sec:intro for the introduction
+- See @sec:math for math examples
+- See @thm:fermat for Fermat's Last Theorem
+
+## Code Example
+
+```rust
+fn main() {
+    println!("Hello, markdown-academic!");
+}
+```
+
+## Footnotes
+
+This is text with a footnote^[This is an inline footnote].
+</textarea>
+            <div id="status"></div>
+            <div id="doc-info"></div>
+        </div>
+        <div class="panel">
+            <h2>Preview</h2>
+            <div id="preview"></div>
+        </div>
+    </div>
+
+    <!-- KaTeX for math rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <script type="module">
+        // Import from CDN - works without any build step!
+        // For local development, use: import { ... } from '../dist/browser/index.js';
+        import { 
+            init,
+            render as renderMarkdown, 
+            parseDocument, 
+            getVersion,
+            RenderOptions 
+        } from 'https://esm.sh/markdown-academic';
+
+        let initialized = false;
+
+        async function initialize() {
+            try {
+                // CDN handles WASM loading automatically
+                await init();
+                initialized = true;
+                document.getElementById('status').textContent = 
+                    `✓ WASM loaded (v${getVersion()})`;
+                updatePreview();
+            } catch (error) {
+                document.getElementById('status').innerHTML = 
+                    `<span class="error">Failed to load WASM: ${error.message}</span>`;
+            }
+        }
+
+        window.updatePreview = function() {
+            if (!initialized) return;
+
+            const editor = document.getElementById('editor');
+            const preview = document.getElementById('preview');
+            const docInfo = document.getElementById('doc-info');
+            const mathBackend = document.getElementById('mathBackend').value;
+            const standalone = document.getElementById('standalone').checked;
+
+            try {
+                // Create options
+                const options = new RenderOptions();
+                options.setMathBackend(mathBackend);
+                options.setStandalone(standalone);
+
+                // Render
+                const html = renderMarkdown(editor.value, options);
+                
+                if (standalone) {
+                    // For standalone, show in iframe
+                    preview.innerHTML = `<iframe srcdoc="${html.replace(/"/g, '&quot;')}" 
+                        style="width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 4px;"></iframe>`;
+                } else {
+                    preview.innerHTML = html;
+                    
+                    // Render math with KaTeX if using katex backend
+                    if (mathBackend === 'katex') {
+                        renderMathInElement(preview, {
+                            delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '$', right: '$', display: false},
+                                {left: '\\[', right: '\\]', display: true},
+                                {left: '\\(', right: '\\)', display: false}
+                            ],
+                            throwOnError: false
+                        });
+                    }
+                }
+
+                // Parse and show document info
+                const doc = parseDocument(editor.value);
+                docInfo.innerHTML = `
+                    <strong>Document Stats:</strong>
+                    📄 ${doc.statistics.word_count} words |
+                    📑 ${doc.statistics.heading_count} headings |
+                    🔢 ${doc.statistics.equation_count} equations |
+                    🏷️ ${doc.labels.length} labels
+                    ${doc.metadata.title ? `<br><strong>Title:</strong> ${doc.metadata.title}` : ''}
+                `;
+            } catch (error) {
+                preview.innerHTML = `<div class="error">${error.message}</div>`;
+                docInfo.textContent = '';
+            }
+        };
+
+        window.insertSnippet = function(type) {
+            const editor = document.getElementById('editor');
+            const snippets = {
+                math: '\n$$\n\\frac{d}{dx} f(x) = f\'(x)\n$$ {#eq:derivative}\n',
+                theorem: '\n::: theorem {#thm:name}\nYour theorem statement here.\n:::\n',
+                citation: '[@author2024]'
+            };
+            
+            const pos = editor.selectionStart;
+            const text = editor.value;
+            editor.value = text.slice(0, pos) + snippets[type] + text.slice(pos);
+            editor.focus();
+            updatePreview();
+        };
+
+        // Debounce updates
+        let timeout;
+        document.getElementById('editor').addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(updatePreview, 150);
+        });
+
+        // Initialize
+        initialize();
+    </script>
+</body>
+</html>

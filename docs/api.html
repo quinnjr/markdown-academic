@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="https://schema.org/TechArticle">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>Rust API Documentation — markdown-academic | Parse, Resolve, Render</title>
+    <meta name="title" content="Rust API Documentation — markdown-academic | Parse, Resolve, Render">
+    <meta name="description" content="Complete Rust API documentation for markdown-academic. Learn how to parse Markdown, resolve references and citations, render to HTML and PDF, configure math backends, and handle errors.">
+    <meta name="keywords" content="Rust API, markdown parser Rust, academic writing library, HTML rendering, PDF generation, Rust crate, ResolveConfig, HtmlConfig, PdfConfig">
+    <meta name="author" content="Joseph R. Quinn">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://quinnjr.github.io/markdown-academic/api.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://quinnjr.github.io/markdown-academic/api.html">
+    <meta property="og:title" content="Rust API Documentation — markdown-academic">
+    <meta property="og:description" content="Complete Rust API for parsing academic Markdown: parse, resolve, and render to HTML or PDF.">
+    <meta property="og:image" content="https://quinnjr.github.io/markdown-academic/og-image.png">
+    <meta property="og:site_name" content="markdown-academic">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://quinnjr.github.io/markdown-academic/api.html">
+    <meta name="twitter:title" content="Rust API Documentation — markdown-academic">
+    <meta name="twitter:description" content="Complete Rust API for parsing academic Markdown: parse, resolve, and render to HTML or PDF.">
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#8b2332">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data: TechArticle -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "markdown-academic Rust API Documentation",
+        "description": "Complete Rust API documentation for markdown-academic: parsing, resolution, and rendering.",
+        "author": {
+            "@type": "Person",
+            "name": "Joseph R. Quinn"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "markdown-academic"
+        },
+        "mainEntityOfPage": "https://quinnjr.github.io/markdown-academic/api.html",
+        "datePublished": "2026-02-01",
+        "dateModified": "2026-02-03",
+        "proficiencyLevel": "Intermediate",
+        "programmingLanguage": "Rust",
+        "dependencies": "markdown-academic crate"
+    }
+    </script>
+    
+    <!-- Structured Data: FAQPage for AEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "How do I render Markdown to HTML with markdown-academic in Rust?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Use the render() convenience function: let html = render(input, None, None)?; Or for more control, use the three-stage pipeline: parse() -> resolve() -> render_html()."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I configure the math rendering backend?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Set math_backend in HtmlConfig: HtmlConfig { math_backend: MathBackend::KaTeX, ..Default::default() }. Options are KaTeX (default), MathJax, or MathML."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I generate PDF output with markdown-academic?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Enable the 'pdf' feature in Cargo.toml, then use render_pdf() or render_to_pdf_file(). Configure with PdfConfig for paper size, margins, and font settings."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What are the main types in markdown-academic?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "The main types are Document (parsed AST), ResolvedDocument (with resolved references), Block (paragraphs, headings, code, math, environments), and Inline (text, emphasis, code, citations, references)."
+                }
+            }
+        ]
+    }
+    </script>
+    
+    <!-- Structured Data: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://quinnjr.github.io/markdown-academic/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Rust API",
+                "item": "https://quinnjr.github.io/markdown-academic/api.html"
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand" aria-label="markdown-academic home">
+                markdown-<span>academic</span>
+            </a>
+            <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu" aria-expanded="false">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="syntax.html" class="nav-link">Syntax</a>
+                <a href="api.html" class="nav-link active" aria-current="page">Rust API</a>
+                <a href="ffi.html" class="nav-link">FFI</a>
+                <a href="example.html" class="nav-link">Example</a>
+                <a href="whitepaper.html" class="nav-link">Whitepaper</a>
+                <a href="https://github.com/quinnjr/markdown-academic" class="nav-link nav-link-icon" rel="noopener noreferrer" target="_blank">
+                    GitHub
+                    <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header main" role="banner">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="index.html">Home</a> / <span aria-current="page">Rust API</span>
+        </nav>
+        <h1 itemprop="headline">Rust API</h1>
+        <p itemprop="description">API documentation for using markdown-academic in Rust projects.</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main main-with-sidebar" role="main" id="main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar" role="complementary" aria-label="Page navigation">
+            <p class="sidebar-title">On This Page</p>
+            <nav aria-label="Section navigation">
+                <ul class="sidebar-nav">
+                    <li><a href="#basic-usage" class="sidebar-link">Basic Usage</a></li>
+                    <li><a href="#convenience" class="sidebar-link">Convenience Functions</a></li>
+                    <li><a href="#configuration" class="sidebar-link">Configuration</a></li>
+                    <li><a href="#types" class="sidebar-link">Core Types</a></li>
+                    <li><a href="#errors" class="sidebar-link">Error Handling</a></li>
+                    <li><a href="#pdf" class="sidebar-link">PDF Generation</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <article class="content" itemprop="articleBody">
+            <!-- Basic Usage -->
+            <section id="basic-usage" class="section-anchor" aria-labelledby="basic-usage-heading">
+                <h2 id="basic-usage-heading">Basic Usage</h2>
+                
+                <p>The library processes documents in three stages: parse, resolve, and render.</p>
+                
+<pre><code>use markdown_academic::{parse, resolve, render_html, ResolveConfig, HtmlConfig};
+
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let input = r#"
+# Introduction {#sec:intro}
+
+The equation $E = mc^2$ is famous. See @sec:intro for more.
+
+::: theorem {#thm:main}
+Every natural number is interesting.
+:::
+"#;
+
+    // Stage 1: Parse the document into an AST
+    let doc = parse(input)?;
+    
+    // Stage 2: Resolve references, citations, and numbering
+    let resolved = resolve(doc, &ResolveConfig::default())?;
+    
+    // Stage 3: Render to HTML
+    let html = render_html(&resolved, &HtmlConfig::default())?;
+    
+    println!("{}", html);
+    Ok(())
+}</code></pre>
+            </section>
+
+            <!-- Convenience Functions -->
+            <section id="convenience" class="section-anchor" aria-labelledby="convenience-heading">
+                <h2 id="convenience-heading">Convenience Functions</h2>
+                
+                <p>For simple use cases, the <code>render</code> function combines all three stages:</p>
+                
+<pre><code>use markdown_academic::render;
+
+// Minimal usage
+let html = render("# Hello *world*", None, None)?;
+
+// With configuration
+let html = render(
+    input,
+    Some(&ResolveConfig::default()),
+    Some(&HtmlConfig { standalone: true, ..Default::default() })
+)?;</code></pre>
+            </section>
+
+            <!-- Configuration -->
+            <section id="configuration" class="section-anchor" aria-labelledby="configuration-heading">
+                <h2 id="configuration-heading">Configuration</h2>
+                
+                <h3 id="resolve-config">ResolveConfig</h3>
+                <p>Controls reference resolution and citation handling:</p>
+                
+<pre><code>use markdown_academic::ResolveConfig;
+
+let config = ResolveConfig {
+    // Base path for resolving relative bibliography paths
+    base_path: Some("/path/to/document".to_string()),
+    
+    // Error on unknown citations (default: false)
+    // When false, unknown citations render as [?key]
+    strict_citations: true,
+    
+    // Error on unknown references (default: false)
+    // When false, unknown refs render as ??
+    strict_references: true,
+};</code></pre>
+
+                <h3 id="html-config">HtmlConfig</h3>
+                <p>Controls HTML output generation:</p>
+                
+<pre><code>use markdown_academic::{HtmlConfig, MathBackend};
+
+let config = HtmlConfig {
+    // Math rendering backend
+    math_backend: MathBackend::KaTeX,  // or MathJax, MathML
+    
+    // Generate complete HTML document vs fragment
+    standalone: true,
+    
+    // Document title (used in standalone mode)
+    title: Some("My Document".to_string()),
+    
+    // Custom CSS to include (standalone mode)
+    custom_css: Some("body { max-width: 800px; }".to_string()),
+    
+    // Include table of contents
+    include_toc: true,
+    
+    // CSS class prefix (default: "mda")
+    class_prefix: "mda".to_string(),
+};</code></pre>
+
+                <h3 id="math-backends">MathBackend Options</h3>
+                <table>
+                    <thead>
+                        <tr><th scope="col">Backend</th><th scope="col">Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>MathBackend::KaTeX</code></td>
+                            <td>Fast client-side rendering (default)</td>
+                        </tr>
+                        <tr>
+                            <td><code>MathBackend::MathJax</code></td>
+                            <td>Comprehensive LaTeX support</td>
+                        </tr>
+                        <tr>
+                            <td><code>MathBackend::MathML</code></td>
+                            <td>Native browser rendering (requires <code>mathml</code> feature)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Core Types -->
+            <section id="types" class="section-anchor" aria-labelledby="types-heading">
+                <h2 id="types-heading">Core Types</h2>
+                
+                <h3 id="document-structure">Document Structure</h3>
+<pre><code>pub struct Document {
+    pub metadata: Metadata,
+    pub blocks: Vec&lt;Block&gt;,
+}
+
+pub struct Metadata {
+    pub title: Option&lt;String&gt;,
+    pub subtitle: Option&lt;String&gt;,
+    pub authors: Vec&lt;String&gt;,
+    pub date: Option&lt;String&gt;,
+    pub keywords: Vec&lt;String&gt;,
+    pub institution: Option&lt;String&gt;,
+    pub macros: HashMap&lt;String, Macro&gt;,
+    pub bibliography_path: Option&lt;String&gt;,
+}
+
+pub struct ResolvedDocument {
+    pub document: Document,
+    pub labels: HashMap&lt;String, LabelInfo&gt;,
+    pub bibliography: Vec&lt;BibEntry&gt;,
+    pub footnotes: Vec&lt;Footnote&gt;,
+}</code></pre>
+
+                <h3 id="block-elements">Block Elements</h3>
+<pre><code>pub enum Block {
+    Paragraph(Vec&lt;Inline&gt;),
+    
+    Heading {
+        level: u8,
+        content: Vec&lt;Inline&gt;,
+        label: Option&lt;String&gt;,
+        number: Option&lt;String&gt;,
+    },
+    
+    CodeBlock {
+        language: Option&lt;String&gt;,
+        content: String,
+    },
+    
+    BlockQuote(Vec&lt;Block&gt;),
+    
+    List {
+        ordered: bool,
+        start: Option&lt;u32&gt;,
+        items: Vec&lt;ListItem&gt;,
+    },
+    
+    DisplayMath {
+        content: String,
+        label: Option&lt;String&gt;,
+        number: Option&lt;u32&gt;,
+    },
+    
+    Environment {
+        kind: EnvironmentKind,
+        label: Option&lt;String&gt;,
+        content: Vec&lt;Block&gt;,
+        caption: Option&lt;Vec&lt;Inline&gt;&gt;,
+        number: Option&lt;u32&gt;,
+    },
+    
+    Table {
+        headers: Vec&lt;Vec&lt;Inline&gt;&gt;,
+        alignments: Vec&lt;Alignment&gt;,
+        rows: Vec&lt;Vec&lt;Vec&lt;Inline&gt;&gt;&gt;,
+        caption: Option&lt;Vec&lt;Inline&gt;&gt;,
+        label: Option&lt;String&gt;,
+    },
+    
+    TableOfContents,
+    ThematicBreak,
+    PageBreak,
+    AppendixMarker,
+}</code></pre>
+
+                <h3 id="inline-elements">Inline Elements</h3>
+<pre><code>pub enum Inline {
+    Text(String),
+    Emphasis(Vec&lt;Inline&gt;),
+    Strong(Vec&lt;Inline&gt;),
+    Code(String),
+    
+    Link {
+        url: String,
+        title: Option&lt;String&gt;,
+        content: Vec&lt;Inline&gt;,
+    },
+    
+    Image {
+        url: String,
+        alt: String,
+        title: Option&lt;String&gt;,
+    },
+    
+    InlineMath(String),
+    
+    Citation(Citation),
+    
+    Reference {
+        label: String,
+        resolved: Option&lt;String&gt;,  // Filled after resolution
+    },
+    
+    Footnote(FootnoteKind),
+    
+    Subscript(Vec&lt;Inline&gt;),
+    Superscript(Vec&lt;Inline&gt;),
+    SmallCaps(Vec&lt;Inline&gt;),
+    
+    SoftBreak,
+    HardBreak,
+}</code></pre>
+
+                <h3 id="environment-kinds">Environment Kinds</h3>
+<pre><code>pub enum EnvironmentKind {
+    Theorem,
+    Lemma,
+    Proposition,
+    Corollary,
+    Definition,
+    Example,
+    Remark,
+    Proof,
+    Figure,
+    Table,
+    Algorithm,
+    Abstract,
+    Note,
+    Warning,
+}</code></pre>
+            </section>
+
+            <!-- Error Handling -->
+            <section id="errors" class="section-anchor" aria-labelledby="errors-heading">
+                <h2 id="errors-heading">Error Handling</h2>
+                
+<pre><code>use markdown_academic::{Error, ParseError, ResolutionError, RenderError};
+
+fn process(input: &str) -> Result&lt;String, Error&gt; {
+    let doc = parse(input)?;
+    let resolved = resolve(doc, &ResolveConfig::default())?;
+    render_html(&resolved, &HtmlConfig::default())
+}
+
+match process(input) {
+    Ok(html) => println!("{}", html),
+    
+    Err(Error::Parse(ParseError::FrontMatter(msg))) => {
+        eprintln!("Invalid TOML front matter: {}", msg);
+    }
+    
+    Err(Error::Parse(ParseError::Syntax { line, message })) => {
+        eprintln!("Syntax error on line {}: {}", line, message);
+    }
+    
+    Err(Error::Resolution(ResolutionError::UnknownReference(label))) => {
+        eprintln!("Unknown reference: @{}", label);
+    }
+    
+    Err(Error::Resolution(ResolutionError::UnknownCitation(key))) => {
+        eprintln!("Unknown citation: [@{}]", key);
+    }
+    
+    Err(Error::Resolution(ResolutionError::BibliographyLoad(path, msg))) => {
+        eprintln!("Failed to load {}: {}", path, msg);
+    }
+    
+    Err(Error::Render(RenderError::Io(e))) => {
+        eprintln!("I/O error: {}", e);
+    }
+    
+    Err(e) => eprintln!("Error: {}", e),
+}</code></pre>
+            </section>
+
+            <!-- PDF Generation -->
+            <section id="pdf" class="section-anchor" aria-labelledby="pdf-heading">
+                <h2 id="pdf-heading">PDF Generation</h2>
+                
+                <p>Enable the <code>pdf</code> feature for PDF output:</p>
+                
+<pre><code># Cargo.toml
+[dependencies]
+markdown-academic = { version = "0.1", features = ["pdf"] }</code></pre>
+
+                <h3 id="basic-pdf">Basic PDF Usage</h3>
+<pre><code>use markdown_academic::{parse, resolve, render_pdf, ResolveConfig, PdfConfig};
+
+fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
+    let input = "# My Document\n\nContent with math: $E=mc^2$";
+    
+    let doc = parse(input)?;
+    let resolved = resolve(doc, &ResolveConfig::default())?;
+    
+    // Render to PDF bytes
+    let pdf_bytes = render_pdf(&resolved, &PdfConfig::default())?;
+    std::fs::write("output.pdf", pdf_bytes)?;
+    
+    Ok(())
+}</code></pre>
+
+                <h3 id="pdf-config">PdfConfig Options</h3>
+<pre><code>use markdown_academic::{PdfConfig, PaperSize, PageMargins};
+
+let config = PdfConfig {
+    // Paper size: Letter (default) or A4
+    paper_size: PaperSize::A4,
+    
+    // Font size in points
+    font_size: 11,
+    
+    // Page margins
+    margins: PageMargins {
+        top: 72.0,    // 1 inch
+        bottom: 72.0,
+        left: 72.0,
+        right: 72.0,
+    },
+    
+    // Include title page
+    title_page: true,
+    
+    // Include page numbers
+    page_numbers: true,
+    
+    // Document title (overrides metadata)
+    title: Some("My Document".to_string()),
+    
+    ..Default::default()
+};</code></pre>
+
+                <h3 id="pdf-convenience">Convenience Functions</h3>
+<pre><code>use markdown_academic::{render_to_pdf, render_to_pdf_file};
+
+// Get PDF bytes directly (all-in-one)
+let pdf = render_to_pdf(input, None, None)?;
+
+// Write to file directly
+render_to_pdf_file(input, None, None, "output.pdf")?;</code></pre>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer" role="contentinfo">
+                <div class="footer-container">
+                    <p>
+                        markdown-academic is open source under the 
+                        <a href="https://github.com/quinnjr/markdown-academic/blob/main/LICENSE" rel="license">MIT License</a>.
+                    </p>
+                    <p>
+                        Created by <a href="mailto:quinn.josephr@protonmail.com" rel="author">Joseph R. Quinn</a>
+                    </p>
+                </div>
+            </footer>
+        </article>
+    </main>
+
+    <script>
+        // Highlight active sidebar link on scroll
+        const sections = document.querySelectorAll('.section-anchor');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    sidebarLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + entry.target.id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+        
+        sections.forEach(section => observer.observe(section));
+    </script>
+</body>
+</html>

@@ -1,221 +1,253 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" itemscope itemtype="https://schema.org/WebPage">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>markdown-academic — Academic Writing in Markdown</title>
-    <meta name="description" content="A Markdown parser and renderer for academic writing with math, citations, cross-references, and more.">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Primary Meta Tags -->
+    <title>markdown-academic — Academic Writing in Markdown | Math, Citations, Cross-References</title>
+    <meta name="title" content="markdown-academic — Academic Writing in Markdown | Math, Citations, Cross-References">
+    <meta name="description" content="markdown-academic is a Markdown parser for academic writing. Write papers with LaTeX math, BibTeX citations, cross-references, theorem environments, and automatic numbering. Available as a Rust library, Python package, and WebAssembly module.">
+    <meta name="keywords" content="markdown, academic writing, LaTeX, math rendering, citations, BibTeX, cross-references, theorem environments, Rust, Python, WebAssembly, scientific writing, research papers, documentation">
+    <meta name="author" content="Joseph R. Quinn">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="generator" content="markdown-academic">
     
-    <!-- Academic Fonts: Crimson Pro for body, JetBrains Mono for code -->
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://quinnjr.github.io/markdown-academic/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://quinnjr.github.io/markdown-academic/">
+    <meta property="og:title" content="markdown-academic — Academic Writing in Markdown">
+    <meta property="og:description" content="Write academic papers with the simplicity of Markdown. Math, citations, cross-references, and theorem environments made easy.">
+    <meta property="og:image" content="https://quinnjr.github.io/markdown-academic/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="markdown-academic">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://quinnjr.github.io/markdown-academic/">
+    <meta name="twitter:title" content="markdown-academic — Academic Writing in Markdown">
+    <meta name="twitter:description" content="Write academic papers with the simplicity of Markdown. Math, citations, cross-references, and theorem environments made easy.">
+    <meta name="twitter:image" content="https://quinnjr.github.io/markdown-academic/og-image.png">
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#8b2332">
+    <meta name="msapplication-TileColor" content="#8b2332">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
-    <!-- KaTeX for math rendering -->
+    <!-- KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'serif': ['Crimson Pro', 'Georgia', 'Times New Roman', 'serif'],
-                        'mono': ['JetBrains Mono', 'Consolas', 'monospace'],
-                    },
-                    colors: {
-                        'parchment': '#fdfbf7',
-                        'ink': '#1a1a1a',
-                        'accent': '#8b2332',
-                        'muted': '#6b6b6b',
-                    }
-                }
-            }
-        }
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data: Software Application -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "markdown-academic",
+        "alternateName": "mda",
+        "description": "A Markdown parser and renderer for academic writing with math, citations, cross-references, and more.",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Windows, macOS, Linux, Web",
+        "url": "https://quinnjr.github.io/markdown-academic/",
+        "downloadUrl": "https://github.com/quinnjr/markdown-academic",
+        "softwareVersion": "0.1.0",
+        "author": {
+            "@type": "Person",
+            "name": "Joseph R. Quinn",
+            "email": "quinn.josephr@protonmail.com"
+        },
+        "license": "https://opensource.org/licenses/MIT",
+        "programmingLanguage": ["Rust", "Python", "JavaScript"],
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "featureList": [
+            "LaTeX math rendering with KaTeX, MathJax, or MathML",
+            "BibTeX citation support with automatic bibliography",
+            "Cross-references with automatic numbering",
+            "Theorem, lemma, proof, and definition environments",
+            "Table of contents generation",
+            "Footnotes (inline and reference style)",
+            "HTML and PDF output"
+        ]
+    }
     </script>
     
-    <style>
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Crimson Pro', serif; }
-        code, pre { font-family: 'JetBrains Mono', monospace; }
-        
-        .prose h1, .prose h2, .prose h3, .prose h4 {
-            font-weight: 600;
-            color: #1a1a1a;
-        }
-        
-        .prose code {
-            background: #f4f4f4;
-            padding: 0.125rem 0.375rem;
-            border-radius: 0.25rem;
-            font-size: 0.875em;
-        }
-        
-        .prose pre code {
-            background: none;
-            padding: 0;
-        }
-        
-        .prose pre {
-            background: #1a1a1a;
-            color: #e5e5e5;
-            padding: 1.25rem;
-            border-radius: 0.5rem;
-            overflow-x: auto;
-            font-size: 0.875rem;
-            line-height: 1.6;
-        }
-        
-        .prose a {
-            color: #8b2332;
-            text-decoration: underline;
-            text-underline-offset: 2px;
-        }
-        
-        .prose a:hover {
-            color: #6b1a28;
-        }
-        
-        .prose blockquote {
-            border-left: 3px solid #8b2332;
-            padding-left: 1.25rem;
-            font-style: italic;
-            color: #6b6b6b;
-        }
-        
-        .prose table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .prose th, .prose td {
-            border: 1px solid #e5e5e5;
-            padding: 0.75rem 1rem;
-            text-align: left;
-        }
-        
-        .prose th {
-            background: #f9f9f9;
-            font-weight: 600;
-        }
-        
-        .nav-link {
-            transition: color 0.15s ease;
-        }
-        
-        .nav-link:hover {
-            color: #8b2332;
-        }
-        
-        .nav-link.active {
-            color: #8b2332;
-            font-weight: 500;
-        }
-        
-        .section-anchor {
-            scroll-margin-top: 6rem;
-        }
-        
-        .example-box {
-            background: #fdfbf7;
-            border: 1px solid #e5e5e5;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-        }
-        
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-    </style>
+    <!-- Structured Data: FAQPage for AEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "What is markdown-academic?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "markdown-academic is a Markdown extension and parser library for academic writing. It adds support for LaTeX math equations, BibTeX citations, cross-references, theorem environments, and automatic numbering while maintaining compatibility with standard Markdown."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What file extension does markdown-academic use?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "markdown-academic documents use the .mda file extension. This distinguishes them from standard Markdown (.md) files while maintaining the connection to the Markdown family."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I write math equations in markdown-academic?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Use single dollar signs for inline math ($E = mc^2$) and double dollar signs for display math ($$\\int_0^1 x dx$$). You can also add labels for cross-referencing: $$ ... $$ {#eq:label}."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I add citations in markdown-academic?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Use bracket syntax with BibTeX keys: [@knuth1984] for single citations, [@knuth1984; @lamport1994] for multiple, and [@knuth1984, p. 42] with page locators. A bibliography is automatically generated from cited works."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "What programming languages does markdown-academic support?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "markdown-academic is implemented in Rust and provides bindings for Python (via FFI), JavaScript/TypeScript (via WebAssembly), and any language with C FFI support."
+                }
+            }
+        ]
+    }
+    </script>
+    
+    <!-- Structured Data: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://quinnjr.github.io/markdown-academic/"
+            }
+        ]
+    }
+    </script>
 </head>
-<body class="bg-parchment text-ink antialiased">
+<body>
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 bg-parchment/95 backdrop-blur border-b border-gray-200 z-50">
-        <div class="max-w-6xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <a href="#" class="text-xl font-semibold tracking-tight">
-                    markdown-<span class="text-accent">academic</span>
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand" aria-label="markdown-academic home">
+                markdown-<span>academic</span>
+            </a>
+            <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu" aria-expanded="false">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link active" aria-current="page">Home</a>
+                <a href="syntax.html" class="nav-link">Syntax</a>
+                <a href="api.html" class="nav-link">Rust API</a>
+                <a href="ffi.html" class="nav-link">FFI</a>
+                <a href="example.html" class="nav-link">Example</a>
+                <a href="whitepaper.html" class="nav-link">Whitepaper</a>
+                <a href="https://github.com/quinnjr/markdown-academic" class="nav-link nav-link-icon" rel="noopener noreferrer" target="_blank">
+                    GitHub
+                    <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                 </a>
-                <div class="hidden md:flex items-center gap-8 text-sm">
-                    <a href="#introduction" class="nav-link">Introduction</a>
-                    <a href="#syntax" class="nav-link">Syntax</a>
-                    <a href="#rust-api" class="nav-link">Rust API</a>
-                    <a href="#ffi" class="nav-link">FFI</a>
-                    <a href="https://github.com/quinnjr/markdown-academic" class="nav-link flex items-center gap-1">
-                        GitHub
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-                    </a>
-                </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero -->
-    <header class="pt-32 pb-20 px-6">
-        <div class="max-w-3xl mx-auto text-center">
-            <p class="text-accent font-medium tracking-wide uppercase text-sm mb-4">Version 0.1.0</p>
-            <h1 class="text-5xl md:text-6xl font-bold tracking-tight mb-6">
-                markdown-academic
-            </h1>
-            <p class="text-xl md:text-2xl text-muted leading-relaxed mb-8">
+    <header class="hero" role="banner">
+        <div class="hero-container">
+            <p class="hero-version">Version 0.1.0</p>
+            <h1 class="hero-title" itemprop="name">markdown-academic</h1>
+            <p class="hero-subtitle" itemprop="description">
                 Academic writing with the simplicity of Markdown.<br>
                 Math, citations, cross-references, and more.
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="#introduction" class="inline-flex items-center justify-center px-6 py-3 bg-ink text-white rounded-lg font-medium hover:bg-gray-800 transition">
-                    Get Started
-                </a>
-                <a href="https://github.com/quinnjr/markdown-academic" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg font-medium hover:border-gray-400 transition">
-                    View on GitHub
-                </a>
+            <div class="hero-buttons">
+                <a href="syntax.html" class="btn btn-primary">Get Started</a>
+                <a href="example.html" class="btn btn-secondary">View Example Paper</a>
+                <a href="https://github.com/quinnjr/markdown-academic" class="btn btn-secondary" rel="noopener noreferrer" target="_blank">GitHub</a>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-6 pb-24">
-        <div class="prose max-w-none">
+    <main class="main" role="main" id="main-content">
+        <article class="content" itemscope itemtype="https://schema.org/Article">
+            <meta itemprop="headline" content="markdown-academic Documentation">
+            <meta itemprop="author" content="Joseph R. Quinn">
             
-            <!-- Introduction -->
-            <section id="introduction" class="section-anchor mb-20">
-                <h2 class="text-3xl font-bold mb-6 pb-3 border-b border-gray-200">Introduction</h2>
+            <!-- Features Overview -->
+            <section id="features" class="section-anchor" aria-labelledby="features-heading">
+                <h2 id="features-heading">Features</h2>
                 
-                <p class="text-lg leading-relaxed mb-6">
-                    <strong>markdown-academic</strong> extends Markdown with features essential for academic and technical writing—mathematical notation, citations, cross-references, theorem environments, and automatic numbering—while preserving the plain-text simplicity that makes Markdown a joy to write.
+                <p class="lead">
+                    <strong>markdown-academic</strong> extends Markdown with features essential for academic and technical writing—while preserving the plain-text simplicity that makes Markdown a joy to write.
                 </p>
                 
-                <p class="text-lg leading-relaxed mb-8">
-                    Documents use the <code>.mda</code> file extension and remain readable as plain text, even without specialized rendering.
-                </p>
-                
-                <div class="feature-grid mb-8">
-                    <div class="example-box">
-                        <h4 class="font-semibold mb-2">Math Rendering</h4>
-                        <p class="text-muted text-sm">Inline and display equations with configurable backends (KaTeX, MathJax, MathML).</p>
+                <div class="feature-grid" role="list">
+                    <div class="feature-box" role="listitem">
+                        <h4>Math Rendering</h4>
+                        <p>Inline and display equations with configurable backends (KaTeX, MathJax, MathML).</p>
                     </div>
-                    <div class="example-box">
-                        <h4 class="font-semibold mb-2">Citations</h4>
-                        <p class="text-muted text-sm">BibTeX integration with automatic bibliography generation.</p>
+                    <div class="feature-box" role="listitem">
+                        <h4>Citations</h4>
+                        <p>BibTeX integration with automatic bibliography generation.</p>
                     </div>
-                    <div class="example-box">
-                        <h4 class="font-semibold mb-2">Cross-References</h4>
-                        <p class="text-muted text-sm">Label anything, reference it anywhere. Automatic numbering included.</p>
+                    <div class="feature-box" role="listitem">
+                        <h4>Cross-References</h4>
+                        <p>Label anything, reference it anywhere. Automatic numbering included.</p>
                     </div>
-                    <div class="example-box">
-                        <h4 class="font-semibold mb-2">Environments</h4>
-                        <p class="text-muted text-sm">Theorems, proofs, definitions, figures, and custom environments.</p>
+                    <div class="feature-box" role="listitem">
+                        <h4>Environments</h4>
+                        <p>Theorems, proofs, definitions, figures, and custom environments.</p>
+                    </div>
+                    <div class="feature-box" role="listitem">
+                        <h4>Table of Contents</h4>
+                        <p>Auto-generated navigation from document headings.</p>
+                    </div>
+                    <div class="feature-box" role="listitem">
+                        <h4>Multiple Outputs</h4>
+                        <p>Render to HTML or PDF from the same source document.</p>
                     </div>
                 </div>
+            </section>
+
+            <!-- Quick Example -->
+            <section id="example" class="section-anchor" aria-labelledby="example-heading">
+                <h2 id="example-heading">Quick Example</h2>
                 
-                <h3 class="text-xl font-semibold mt-10 mb-4">Quick Example</h3>
-                
-                <p class="mb-4">A markdown-academic document looks like this:</p>
+                <p>A markdown-academic document looks like this:</p>
                 
 <pre><code>+++
 title = "My Paper"
@@ -237,28 +269,30 @@ can be factored into primes.
 :::
 
 See @thm:main and [@knuth1984] for details.</code></pre>
+
+                <p>Documents use the <code>.mda</code> file extension and remain readable as plain text, even without specialized rendering.</p>
             </section>
 
             <!-- Installation -->
-            <section id="installation" class="section-anchor mb-20">
-                <h2 class="text-3xl font-bold mb-6 pb-3 border-b border-gray-200">Installation</h2>
+            <section id="installation" class="section-anchor" aria-labelledby="installation-heading">
+                <h2 id="installation-heading">Installation</h2>
                 
-                <h3 class="text-xl font-semibold mt-8 mb-4">Rust</h3>
-                <p class="mb-4">Add to your <code>Cargo.toml</code>:</p>
+                <h3>Rust</h3>
+                <p>Add to your <code>Cargo.toml</code>:</p>
 <pre><code>[dependencies]
 markdown-academic = "0.1"</code></pre>
 
-                <h3 class="text-xl font-semibold mt-8 mb-4">From Source</h3>
+                <h3>From Source</h3>
 <pre><code>git clone https://github.com/quinnjr/markdown-academic.git
 cd markdown-academic/rust
 cargo build --release</code></pre>
 
-                <h3 class="text-xl font-semibold mt-8 mb-4">Features</h3>
+                <h3>Optional Features</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Feature</th>
-                            <th>Description</th>
+                            <th scope="col">Feature</th>
+                            <th scope="col">Description</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -270,570 +304,72 @@ cargo build --release</code></pre>
                             <td><code>wasm</code></td>
                             <td>Enable WebAssembly bindings for JavaScript</td>
                         </tr>
+                        <tr>
+                            <td><code>pdf</code></td>
+                            <td>Enable PDF output generation</td>
+                        </tr>
                     </tbody>
                 </table>
             </section>
 
-            <!-- Syntax Reference -->
-            <section id="syntax" class="section-anchor mb-20">
-                <h2 class="text-3xl font-bold mb-6 pb-3 border-b border-gray-200">Syntax Reference</h2>
+            <!-- Documentation Links -->
+            <section id="docs" class="section-anchor" aria-labelledby="docs-heading">
+                <h2 id="docs-heading">Documentation</h2>
                 
-                <!-- Front Matter -->
-                <h3 class="text-xl font-semibold mt-10 mb-4" id="front-matter">Front Matter</h3>
-                <p class="mb-4">Document metadata is defined in TOML front matter, delimited by <code>+++</code>:</p>
-<pre><code>+++
-title = "Document Title"
-author = "Jane Doe"
-date = "2026-02-01"
-
-[macros]
-R = "\\mathbb{R}"
-vec = "\\mathbf{#1}"
-
-[bibliography]
-path = "references.bib"
-+++</code></pre>
-
-                <!-- Math -->
-                <h3 class="text-xl font-semibold mt-10 mb-4" id="math">Mathematics</h3>
-                <p class="mb-4">Inline math uses single dollar signs, display math uses double:</p>
-                
-                <table>
-                    <thead>
-                        <tr><th>Type</th><th>Syntax</th><th>Result</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Inline</td>
-                            <td><code>$E = mc^2$</code></td>
-                            <td>\(E = mc^2\)</td>
-                        </tr>
-                        <tr>
-                            <td>Display</td>
-                            <td><code>$$\int_0^1 x\,dx$$</code></td>
-                            <td>\[\int_0^1 x\,dx = \frac{1}{2}\]</td>
-                        </tr>
-                        <tr>
-                            <td>Labeled</td>
-                            <td><code>$$...$$ {#eq:label}</code></td>
-                            <td>Numbered, referenceable equation</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <p class="mt-4 mb-4">Custom macros defined in front matter expand in all math contexts:</p>
-<pre><code>+++
-[macros]
-R = "\\mathbb{R}"
-norm = "\\left\\| #1 \\right\\|"
-+++
-
-For all $x \in \R$, we have $\norm{x} \geq 0$.</code></pre>
-
-                <!-- Citations -->
-                <h3 class="text-xl font-semibold mt-10 mb-4" id="citations">Citations</h3>
-                <p class="mb-4">Citations use bracket syntax with BibTeX keys:</p>
-                
-                <table>
-                    <thead>
-                        <tr><th>Syntax</th><th>Description</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td><code>[@knuth1984]</code></td><td>Single citation</td></tr>
-                        <tr><td><code>[@knuth1984; @lamport1994]</code></td><td>Multiple citations</td></tr>
-                        <tr><td><code>[@knuth1984, p. 42]</code></td><td>With page locator</td></tr>
-                        <tr><td><code>[@knuth1984, Ch. 3]</code></td><td>With chapter locator</td></tr>
-                    </tbody>
-                </table>
-
-                <p class="mt-4">A bibliography is automatically generated from cited works.</p>
-
-                <!-- Cross-References -->
-                <h3 class="text-xl font-semibold mt-10 mb-4" id="references">Cross-References</h3>
-                <p class="mb-4">Label elements with <code>{#label}</code> and reference them with <code>@label</code>:</p>
-                
-<pre><code># Introduction {#sec:intro}
-
-See @sec:intro for the introduction.
-
-$$E = mc^2$$ {#eq:einstein}
-
-Equation @eq:einstein shows mass-energy equivalence.
-
-::: theorem {#thm:fermat}
-...
-:::
-
-By @thm:fermat, we conclude...</code></pre>
-
-                <p class="mt-4">Labels conventionally use prefixes: <code>sec:</code>, <code>eq:</code>, <code>thm:</code>, <code>fig:</code>, <code>tab:</code>.</p>
-
-                <!-- Environments -->
-                <h3 class="text-xl font-semibold mt-10 mb-4" id="environments">Environments</h3>
-                <p class="mb-4">Environments use fenced blocks with <code>:::</code>:</p>
-                
-<pre><code>::: theorem {#thm:main}
-For every $\epsilon > 0$, there exists $\delta > 0$ such that...
-:::
-
-::: proof
-By construction, choose $\delta = \epsilon / 2$. Then...
-:::
-
-::: definition
-A **group** is a set $G$ with a binary operation...
-:::
-
-::: figure {#fig:results}
-![](chart.png)
-
-Experimental results showing convergence.
-:::</code></pre>
-
-                <p class="mt-4 mb-4">Supported environments:</p>
-                <table>
-                    <thead>
-                        <tr><th>Environment</th><th>Numbered</th><th>Notes</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td><code>theorem</code>, <code>thm</code></td><td>Yes</td><td></td></tr>
-                        <tr><td><code>lemma</code>, <code>lem</code></td><td>Yes</td><td></td></tr>
-                        <tr><td><code>proposition</code>, <code>prop</code></td><td>Yes</td><td></td></tr>
-                        <tr><td><code>corollary</code>, <code>cor</code></td><td>Yes</td><td></td></tr>
-                        <tr><td><code>definition</code>, <code>def</code></td><td>Yes</td><td></td></tr>
-                        <tr><td><code>example</code>, <code>ex</code></td><td>Yes</td><td></td></tr>
-                        <tr><td><code>remark</code>, <code>rem</code></td><td>Yes</td><td></td></tr>
-                        <tr><td><code>proof</code>, <code>pf</code></td><td>No</td><td>Ends with ∎</td></tr>
-                        <tr><td><code>figure</code>, <code>fig</code></td><td>Yes</td><td>Last paragraph is caption</td></tr>
-                        <tr><td><code>algorithm</code>, <code>algo</code></td><td>Yes</td><td></td></tr>
-                    </tbody>
-                </table>
-
-                <!-- Footnotes -->
-                <h3 class="text-xl font-semibold mt-10 mb-4" id="footnotes">Footnotes</h3>
-                <p class="mb-4">Two styles of footnotes are supported:</p>
-                
-<pre><code>Inline footnotes are convenient^[Like this one].
-
-Reference-style footnotes[^1] can be defined elsewhere.
-
-[^1]: The footnote content goes here.</code></pre>
-
-                <!-- Table of Contents -->
-                <h3 class="text-xl font-semibold mt-10 mb-4" id="toc">Table of Contents</h3>
-                <p class="mb-4">Insert a table of contents with:</p>
-<pre><code>[[toc]]</code></pre>
-                <p>The TOC is generated from all headings in the document.</p>
-
-                <!-- Tables -->
-                <h3 class="text-xl font-semibold mt-10 mb-4" id="tables">Tables</h3>
-                <p class="mb-4">Standard Markdown pipe tables with optional captions:</p>
-<pre><code>| Model    | Accuracy | F1    |
-|----------|:--------:|------:|
-| Baseline | 0.82     | 0.79  |
-| Proposed | 0.91     | 0.88  |
-
-Table: Performance comparison. {#tab:results}</code></pre>
-
-                <p class="mt-4">Column alignment: <code>:---</code> left, <code>:---:</code> center, <code>---:</code> right.</p>
+                <nav class="card-grid" aria-label="Documentation sections">
+                    <a href="syntax.html" class="card-link">
+                        <h3>Syntax Reference</h3>
+                        <p>Complete guide to markdown-academic syntax: math, citations, environments, and more.</p>
+                    </a>
+                    <a href="api.html" class="card-link">
+                        <h3>Rust API</h3>
+                        <p>API documentation for using markdown-academic in Rust projects.</p>
+                    </a>
+                    <a href="ffi.html" class="card-link">
+                        <h3>FFI / Python</h3>
+                        <p>C API and Python bindings for integration with other languages.</p>
+                    </a>
+                    <a href="whitepaper.html" class="card-link">
+                        <h3>Whitepaper</h3>
+                        <p>Read the design document explaining the rationale behind markdown-academic.</p>
+                    </a>
+                </nav>
             </section>
 
-            <!-- Rust API -->
-            <section id="rust-api" class="section-anchor mb-20">
-                <h2 class="text-3xl font-bold mb-6 pb-3 border-b border-gray-200">Rust API</h2>
+            <!-- Quick Usage -->
+            <section id="usage" class="section-anchor" aria-labelledby="usage-heading">
+                <h2 id="usage-heading">Basic Usage</h2>
                 
-                <h3 class="text-xl font-semibold mt-8 mb-4">Basic Usage</h3>
-<pre><code>use markdown_academic::{parse, resolve, render_html, ResolveConfig, HtmlConfig};
+<pre><code>use markdown_academic::render;
 
 fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
     let input = r#"
 # Introduction {#sec:intro}
 
-The equation $E = mc^2$ is famous.
+The equation $E = mc^2$ is famous. See @sec:intro.
 "#;
 
-    // Parse the document
-    let doc = parse(input)?;
-    
-    // Resolve references and citations
-    let resolved = resolve(doc, &ResolveConfig::default())?;
-    
-    // Render to HTML
-    let html = render_html(&resolved, &HtmlConfig::default())?;
-    
+    let html = render(input, None, None)?;
     println!("{}", html);
     Ok(())
 }</code></pre>
 
-                <h3 class="text-xl font-semibold mt-10 mb-4">Convenience Function</h3>
-                <p class="mb-4">For simple cases, use the <code>render</code> function:</p>
-<pre><code>use markdown_academic::render;
-
-let html = render("# Hello *world*", None, None)?;</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">Configuration</h3>
-                
-                <h4 class="font-semibold mt-6 mb-3">ResolveConfig</h4>
-<pre><code>use markdown_academic::ResolveConfig;
-
-let config = ResolveConfig {
-    // Base path for resolving relative bibliography paths
-    base_path: Some("/path/to/document".to_string()),
-    
-    // Error on unknown citations (default: false)
-    strict_citations: true,
-    
-    // Error on unknown references (default: false)
-    strict_references: true,
-};</code></pre>
-
-                <h4 class="font-semibold mt-6 mb-3">HtmlConfig</h4>
-<pre><code>use markdown_academic::{HtmlConfig, MathBackend};
-
-let config = HtmlConfig {
-    // Math rendering: KaTeX (default), MathJax, or MathML
-    math_backend: MathBackend::KaTeX,
-    
-    // Generate complete HTML document vs fragment
-    standalone: true,
-    
-    // Document title (for standalone mode)
-    title: Some("My Document".to_string()),
-    
-    // Custom CSS to include
-    custom_css: Some("body { max-width: 800px; }".to_string()),
-    
-    // Include table of contents
-    include_toc: true,
-    
-    // CSS class prefix (default: "mda")
-    class_prefix: "mda".to_string(),
-};</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">Core Types</h3>
-                
-                <h4 class="font-semibold mt-6 mb-3">Document Structure</h4>
-<pre><code>pub struct Document {
-    pub metadata: Metadata,
-    pub blocks: Vec&lt;Block&gt;,
-}
-
-pub struct Metadata {
-    pub macros: HashMap&lt;String, Macro&gt;,
-    pub bibliography_path: Option&lt;String&gt;,
-    pub title: Option&lt;String&gt;,
-    pub authors: Vec&lt;String&gt;,
-    pub date: Option&lt;String&gt;,
-}</code></pre>
-
-                <h4 class="font-semibold mt-6 mb-3">Block Elements</h4>
-<pre><code>pub enum Block {
-    Paragraph(Vec&lt;Inline&gt;),
-    Heading { level: u8, content: Vec&lt;Inline&gt;, label: Option&lt;String&gt; },
-    CodeBlock { language: Option&lt;String&gt;, content: String },
-    BlockQuote(Vec&lt;Block&gt;),
-    List { ordered: bool, start: Option&lt;u32&gt;, items: Vec&lt;ListItem&gt; },
-    DisplayMath { content: String, label: Option&lt;String&gt; },
-    Environment { kind: EnvironmentKind, label: Option&lt;String&gt;, 
-                  content: Vec&lt;Block&gt;, caption: Option&lt;Vec&lt;Inline&gt;&gt; },
-    Table { headers: Vec&lt;Vec&lt;Inline&gt;&gt;, rows: Vec&lt;Vec&lt;Vec&lt;Inline&gt;&gt;&gt;, ... },
-    TableOfContents,
-    ThematicBreak,
-}</code></pre>
-
-                <h4 class="font-semibold mt-6 mb-3">Inline Elements</h4>
-<pre><code>pub enum Inline {
-    Text(String),
-    Emphasis(Vec&lt;Inline&gt;),
-    Strong(Vec&lt;Inline&gt;),
-    Code(String),
-    Link { url: String, title: Option&lt;String&gt;, content: Vec&lt;Inline&gt; },
-    Image { url: String, alt: String, title: Option&lt;String&gt; },
-    InlineMath(String),
-    Citation(Citation),
-    Reference { label: String, resolved: Option&lt;String&gt; },
-    Footnote(FootnoteKind),
-    SoftBreak,
-    HardBreak,
-}</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">Error Handling</h3>
-<pre><code>use markdown_academic::{Error, ParseError, ResolutionError, RenderError};
-
-match parse(input) {
-    Ok(doc) => { /* ... */ }
-    Err(Error::Parse(ParseError::FrontMatter(msg))) => {
-        eprintln!("Invalid front matter: {}", msg);
-    }
-    Err(e) => {
-        eprintln!("Error: {}", e);
-    }
-}</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">PDF Generation</h3>
-                <p class="mb-4">Generate PDF documents by enabling the <code>pdf</code> feature:</p>
-<pre><code># Cargo.toml
-[dependencies]
-markdown-academic = { version = "0.1", features = ["pdf"] }</code></pre>
-
-                <h4 class="font-semibold mt-6 mb-3">Basic PDF Usage</h4>
-<pre><code>use markdown_academic::{parse, resolve, render_pdf, ResolveConfig, PdfConfig};
-
-fn main() -> Result&lt;(), Box&lt;dyn std::error::Error&gt;&gt; {
-    let input = "# My Document\n\nContent with math: $E=mc^2$";
-    
-    let doc = parse(input)?;
-    let resolved = resolve(doc, &ResolveConfig::default())?;
-    
-    // Render to PDF bytes
-    let pdf_bytes = render_pdf(&resolved, &PdfConfig::default())?;
-    std::fs::write("output.pdf", pdf_bytes)?;
-    
-    Ok(())
-}</code></pre>
-
-                <h4 class="font-semibold mt-6 mb-3">PdfConfig Options</h4>
-<pre><code>use markdown_academic::{PdfConfig, PaperSize};
-
-let config = PdfConfig {
-    paper_size: PaperSize::A4,  // Letter (default) or A4
-    font_size: 11,              // Points (default: 11)
-    title_page: true,           // Include title page
-    page_numbers: true,         // Include page numbers
-    title: Some("My Document".to_string()),
-    ..Default::default()
-};</code></pre>
-
-                <h4 class="font-semibold mt-6 mb-3">Convenience Functions</h4>
-<pre><code>use markdown_academic::{render_to_pdf, render_to_pdf_file};
-
-// Get PDF bytes directly
-let pdf = render_to_pdf(input, None, None)?;
-
-// Write to file directly
-render_to_pdf_file(input, None, None, "output.pdf")?;</code></pre>
-            </section>
-
-            <!-- FFI -->
-            <section id="ffi" class="section-anchor mb-20">
-                <h2 class="text-3xl font-bold mb-6 pb-3 border-b border-gray-200">FFI / C API</h2>
-                
-                <p class="text-lg mb-6">
-                    markdown-academic provides a C-compatible FFI for integration with Python, Ruby, and other languages.
-                </p>
-                
-                <h3 class="text-xl font-semibold mt-8 mb-4">Building the Shared Library</h3>
-<pre><code>cd rust
-cargo build --release
-
-# Output: target/release/libmarkdown_academic.so (Linux)
-#         target/release/libmarkdown_academic.dylib (macOS)
-#         target/release/markdown_academic.dll (Windows)</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">C Header</h3>
-<pre><code>// markdown_academic.h
-#ifndef MARKDOWN_ACADEMIC_H
-#define MARKDOWN_ACADEMIC_H
-
-#include &lt;stdint.h&gt;
-
-typedef struct MdAcademicDocument MdAcademicDocument;
-
-typedef struct {
-    int math_backend;    // 0 = KaTeX, 1 = MathJax, 2 = MathML
-    int standalone;      // 0 = fragment, 1 = full HTML document
-    const char* base_path;
-} MdAcademicConfig;
-
-typedef struct {
-    char* data;          // Result string (NULL on error)
-    char* error;         // Error message (NULL on success)
-} MdAcademicResult;
-
-// Parse and render in one step
-MdAcademicResult mdacademic_parse_and_render(
-    const char* input,
-    const MdAcademicConfig* config
-);
-
-// Two-step API for reusing parsed documents
-MdAcademicDocument* mdacademic_parse(const char* input);
-MdAcademicDocument* mdacademic_parse_with_config(
-    const char* input,
-    const MdAcademicConfig* config
-);
-MdAcademicResult mdacademic_render_html(
-    const MdAcademicDocument* doc,
-    const MdAcademicConfig* config
-);
-
-// Memory management
-void mdacademic_free_string(char* s);
-void mdacademic_free_document(MdAcademicDocument* doc);
-void mdacademic_free_result(MdAcademicResult result);
-
-// Version info
-const char* mdacademic_version(void);
-
-#endif</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">Python Package</h3>
-                <p class="mb-4">The recommended way to use markdown-academic from Python is with the included package:</p>
-<pre><code># Install (requires building the Rust library first)
-cd rust && cargo build --release --features pdf
-cd ../python && pip install -e .
-
-# Basic usage
-import markdown_academic as mda
-
-# Render to HTML
-html = mda.render("# Hello\n\nThe equation $E=mc^2$ is famous.")
-print(html)
-
-# Render complete HTML document
-html = mda.render("# Hello", standalone=True)
-
-# Choose math backend
-html = mda.render("$x^2$", math_backend=mda.MathBackend.MATHJAX)</code></pre>
-
-                <h4 class="font-semibold mt-6 mb-3">PDF Generation</h4>
-<pre><code>import markdown_academic as mda
-
-# Check if PDF support is available
-if mda.has_pdf_support():
-    # Render to PDF bytes
-    pdf_bytes = mda.render_pdf("# My Document\n\n$E=mc^2$")
-    with open("output.pdf", "wb") as f:
-        f.write(pdf_bytes)
-    
-    # Or write directly to file
-    mda.render_pdf_to_file(
-        "# My Document",
-        "output.pdf",
-        paper_size=mda.PaperSize.A4,
-        title="My Document"
-    )</code></pre>
-
-                <h4 class="font-semibold mt-6 mb-3">Document Class</h4>
-<pre><code>import markdown_academic as mda
-
-# Parse once, render multiple times
-with mda.Document("# Hello $E=mc^2$") as doc:
-    html_fragment = doc.render()
-    html_full = doc.render(standalone=True)</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">Low-level ctypes (for reference)</h3>
-<pre><code>import ctypes
-from ctypes import c_char_p, c_int, POINTER, Structure
-
-# Load the library
-lib = ctypes.CDLL("./libmarkdown_academic.so")
-
-class MdAcademicConfig(Structure):
-    _fields_ = [
-        ("math_backend", c_int),
-        ("standalone", c_int),
-        ("base_path", c_char_p),
-    ]
-
-class MdAcademicResult(Structure):
-    _fields_ = [
-        ("data", c_char_p),
-        ("error", c_char_p),
-    ]
-
-# Set up function signatures
-lib.mdacademic_parse_and_render.argtypes = [c_char_p, POINTER(MdAcademicConfig)]
-lib.mdacademic_parse_and_render.restype = MdAcademicResult
-lib.mdacademic_free_result.argtypes = [MdAcademicResult]
-
-def render_markdown(text: str, standalone: bool = False) -> str:
-    config = MdAcademicConfig(
-        math_backend=0,  # KaTeX
-        standalone=1 if standalone else 0,
-        base_path=None
-    )
-    
-    result = lib.mdacademic_parse_and_render(
-        text.encode('utf-8'),
-        ctypes.byref(config)
-    )
-    
-    if result.error:
-        error_msg = result.error.decode('utf-8')
-        lib.mdacademic_free_result(result)
-        raise ValueError(error_msg)
-    
-    html = result.data.decode('utf-8')
-    lib.mdacademic_free_result(result)
-    return html
-
-# Usage
-html = render_markdown("# Hello\n\nThe equation $E=mc^2$ is famous.")
-print(html)</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">Error Handling</h3>
-                <p class="mb-4">Always check the result struct for errors:</p>
-<pre><code>MdAcademicResult result = mdacademic_parse_and_render(input, &config);
-
-if (result.error != NULL) {
-    fprintf(stderr, "Error: %s\n", result.error);
-    mdacademic_free_result(result);
-    return 1;
-}
-
-printf("%s\n", result.data);
-mdacademic_free_result(result);  // Always free!</code></pre>
-
-                <h3 class="text-xl font-semibold mt-10 mb-4">WebAssembly</h3>
-                <p class="mb-4">Build with the <code>wasm</code> feature for JavaScript:</p>
-<pre><code>cargo build --release --features wasm --target wasm32-unknown-unknown</code></pre>
-
-<pre><code>// JavaScript usage
-import { renderMarkdown, RenderOptions } from 'markdown-academic';
-
-const options = new RenderOptions();
-options.setMathBackend('katex');
-options.setStandalone(true);
-
-const html = renderMarkdown('# Hello $x^2$', options);</code></pre>
+                <p>For more detailed usage, see the <a href="api.html">Rust API documentation</a>.</p>
             </section>
 
             <!-- Footer -->
-            <section class="mt-20 pt-10 border-t border-gray-200">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted">
+            <footer class="footer" role="contentinfo">
+                <div class="footer-container">
                     <p>
                         markdown-academic is open source under the 
-                        <a href="https://github.com/quinnjr/markdown-academic/blob/main/LICENSE">MIT License</a>.
+                        <a href="https://github.com/quinnjr/markdown-academic/blob/main/LICENSE" rel="license">MIT License</a>.
                     </p>
                     <p>
-                        Created by <a href="mailto:quinn.josephr@protonmail.com">Joseph R. Quinn</a>
+                        Created by <a href="mailto:quinn.josephr@protonmail.com" rel="author">Joseph R. Quinn</a>
                     </p>
                 </div>
-            </section>
-        </div>
+            </footer>
+        </article>
     </main>
-
-    <!-- Mobile Navigation Toggle (optional enhancement) -->
-    <script>
-        // Highlight current section in navigation
-        const sections = document.querySelectorAll('.section-anchor');
-        const navLinks = document.querySelectorAll('.nav-link');
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    navLinks.forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('href') === '#' + entry.target.id) {
-                            link.classList.add('active');
-                        }
-                    });
-                }
-            });
-        }, { rootMargin: '-20% 0px -80% 0px' });
-        
-        sections.forEach(section => observer.observe(section));
-    </script>
 </body>
 </html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>markdown-academic CDN Example</title>
+    
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+        .panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 1.1rem;
+            color: #666;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 400px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        #preview {
+            min-height: 400px;
+            line-height: 1.6;
+        }
+        #preview h1 { font-size: 1.5rem; margin-top: 0; }
+        #preview h2 { font-size: 1.25rem; }
+        .status {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .status.loading { background: #fff3cd; color: #856404; }
+        .status.ready { background: #d4edda; color: #155724; }
+        .status.error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>📄 markdown-academic CDN Example</h1>
+    <p>This example loads directly from <code>esm.sh</code> - no npm install or build step required!</p>
+    
+    <div id="status" class="status loading">Loading WASM module from CDN...</div>
+    
+    <div class="container">
+        <div class="panel">
+            <h2>Editor (markdown-academic source)</h2>
+            <textarea id="editor">+++
+title = "Quick Demo"
+authors = ["Your Name"]
++++
+
+# Introduction {#sec:intro}
+
+Welcome to **markdown-academic**! This is loaded directly from a CDN.
+
+## Math Support {#sec:math}
+
+Inline math: $E = mc^2$
+
+Display math:
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$ {#eq:gaussian}
+
+See Equation @eq:gaussian for the famous Gaussian integral.
+
+## Theorem Environments
+
+::: theorem {#thm:example}
+Every positive integer greater than 1 is either prime or can be factored into primes.
+:::
+
+::: proof
+This follows from the fundamental theorem of arithmetic.
+:::
+
+## Cross-References
+
+- See @sec:intro for the introduction
+- See @sec:math for math examples  
+- See @thm:example for our theorem
+
+## Features
+
+- **Bold** and *italic* text
+- `inline code`
+- Lists and more!
+</textarea>
+        </div>
+        <div class="panel">
+            <h2>Preview (rendered HTML)</h2>
+            <div id="preview"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ========================================
+        // Load markdown-academic directly from CDN
+        // No npm install required!
+        // ========================================
+        import { init, render, getVersion } from 'https://esm.sh/markdown-academic';
+        
+        const status = document.getElementById('status');
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        
+        try {
+            // Initialize the WASM module
+            await init();
+            
+            status.className = 'status ready';
+            status.textContent = `✓ Ready! (markdown-academic v${getVersion()})`;
+            
+            // Update preview on input
+            function update() {
+                try {
+                    preview.innerHTML = render(editor.value);
+                    // Render math with KaTeX
+                    renderMathInElement(preview, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ],
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    preview.innerHTML = `<pre style="color: #c00; background: #fee; padding: 10px; border-radius: 4px;">${e.message}</pre>`;
+                }
+            }
+            
+            editor.addEventListener('input', update);
+            update(); // Initial render
+            
+        } catch (error) {
+            status.className = 'status error';
+            status.textContent = `Error: ${error.message}`;
+        }
+    </script>
+</body>
+</html>

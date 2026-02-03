@@ -1,0 +1,71 @@
+{
+  "name": "markdown-academic",
+  "version": "0.1.0",
+  "description": "Academic writing in Markdown - Math, citations, cross-references, and more",
+  "type": "module",
+  "main": "dist/node/index.js",
+  "module": "dist/esm/index.js",
+  "browser": "dist/browser/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "node": {
+        "import": "./dist/node/index.mjs",
+        "require": "./dist/node/index.js"
+      },
+      "browser": {
+        "import": "./dist/browser/index.js"
+      },
+      "default": "./dist/esm/index.js"
+    },
+    "./pkg": {
+      "import": "./dist/pkg/markdown_academic.js",
+      "types": "./dist/pkg/markdown_academic.d.ts"
+    },
+    "./pkg/*": "./dist/pkg/*"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build:wasm": "cd ../rust && wasm-pack build --target web --out-dir ../wasm/dist/pkg --features wasm",
+    "build:bundle": "node scripts/bundle.cjs",
+    "build": "pnpm run build:wasm && pnpm run build:bundle",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "markdown",
+    "academic",
+    "wasm",
+    "webassembly",
+    "latex",
+    "math",
+    "citations",
+    "bibtex",
+    "cross-references"
+  ],
+  "author": "Joseph R. Quinn <quinn.josephr@protonmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quinnjr/markdown-academic.git",
+    "directory": "wasm"
+  },
+  "homepage": "https://quinnjr.github.io/markdown-academic/",
+  "bugs": {
+    "url": "https://github.com/quinnjr/markdown-academic/issues"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "vitest": "^2.0.0",
+    "esbuild": "^0.20.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

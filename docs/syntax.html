@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="https://schema.org/TechArticle">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>Syntax Reference — markdown-academic | Math, Citations, Environments Guide</title>
+    <meta name="title" content="Syntax Reference — markdown-academic | Math, Citations, Environments Guide">
+    <meta name="description" content="Complete syntax reference for markdown-academic: TOML front matter, LaTeX math equations, BibTeX citations, cross-references, theorem environments, footnotes, tables, and more. Learn how to write academic papers in Markdown.">
+    <meta name="keywords" content="markdown syntax, academic writing syntax, LaTeX math in markdown, BibTeX citations markdown, cross-references, theorem environments, markdown footnotes, TOML front matter">
+    <meta name="author" content="Joseph R. Quinn">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://quinnjr.github.io/markdown-academic/syntax.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://quinnjr.github.io/markdown-academic/syntax.html">
+    <meta property="og:title" content="Syntax Reference — markdown-academic">
+    <meta property="og:description" content="Complete guide to markdown-academic syntax: math, citations, cross-references, environments, and more.">
+    <meta property="og:image" content="https://quinnjr.github.io/markdown-academic/og-image.png">
+    <meta property="og:site_name" content="markdown-academic">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://quinnjr.github.io/markdown-academic/syntax.html">
+    <meta name="twitter:title" content="Syntax Reference — markdown-academic">
+    <meta name="twitter:description" content="Complete guide to markdown-academic syntax: math, citations, cross-references, environments, and more.">
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#8b2332">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data: TechArticle -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "markdown-academic Syntax Reference",
+        "description": "Complete syntax reference for markdown-academic: TOML front matter, LaTeX math, citations, cross-references, environments, footnotes, and tables.",
+        "author": {
+            "@type": "Person",
+            "name": "Joseph R. Quinn"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "markdown-academic"
+        },
+        "mainEntityOfPage": "https://quinnjr.github.io/markdown-academic/syntax.html",
+        "datePublished": "2026-02-01",
+        "dateModified": "2026-02-03",
+        "proficiencyLevel": "Beginner",
+        "dependencies": "markdown-academic library"
+    }
+    </script>
+    
+    <!-- Structured Data: HowTo for AEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        "name": "How to Write Academic Papers with markdown-academic",
+        "description": "Learn how to use markdown-academic syntax for writing academic papers with math, citations, and cross-references.",
+        "step": [
+            {
+                "@type": "HowToStep",
+                "name": "Add Front Matter",
+                "text": "Start your document with TOML front matter between +++ delimiters. Include title, author, date, and custom macros.",
+                "url": "https://quinnjr.github.io/markdown-academic/syntax.html#front-matter"
+            },
+            {
+                "@type": "HowToStep",
+                "name": "Write Math Equations",
+                "text": "Use $...$ for inline math and $$...$$ for display math. Add labels with {#eq:label} for cross-referencing.",
+                "url": "https://quinnjr.github.io/markdown-academic/syntax.html#math"
+            },
+            {
+                "@type": "HowToStep",
+                "name": "Add Citations",
+                "text": "Use [@key] syntax with BibTeX keys. Multiple citations: [@key1; @key2]. With locator: [@key, p. 42].",
+                "url": "https://quinnjr.github.io/markdown-academic/syntax.html#citations"
+            },
+            {
+                "@type": "HowToStep",
+                "name": "Create Cross-References",
+                "text": "Label elements with {#label} and reference them with @label. Use prefixes like sec:, eq:, thm:, fig:, tab:.",
+                "url": "https://quinnjr.github.io/markdown-academic/syntax.html#references"
+            },
+            {
+                "@type": "HowToStep",
+                "name": "Use Environments",
+                "text": "Create theorem-like environments with ::: theorem {#thm:name} ... ::: syntax. Supports theorem, lemma, proof, definition, and more.",
+                "url": "https://quinnjr.github.io/markdown-academic/syntax.html#environments"
+            }
+        ]
+    }
+    </script>
+    
+    <!-- Structured Data: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://quinnjr.github.io/markdown-academic/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Syntax Reference",
+                "item": "https://quinnjr.github.io/markdown-academic/syntax.html"
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand" aria-label="markdown-academic home">
+                markdown-<span>academic</span>
+            </a>
+            <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu" aria-expanded="false">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="syntax.html" class="nav-link active" aria-current="page">Syntax</a>
+                <a href="api.html" class="nav-link">Rust API</a>
+                <a href="ffi.html" class="nav-link">FFI</a>
+                <a href="example.html" class="nav-link">Example</a>
+                <a href="whitepaper.html" class="nav-link">Whitepaper</a>
+                <a href="https://github.com/quinnjr/markdown-academic" class="nav-link nav-link-icon" rel="noopener noreferrer" target="_blank">
+                    GitHub
+                    <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header main" role="banner">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="index.html">Home</a> / <span aria-current="page">Syntax Reference</span>
+        </nav>
+        <h1 itemprop="headline">Syntax Reference</h1>
+        <p itemprop="description">Complete guide to markdown-academic syntax and features.</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main main-with-sidebar" role="main" id="main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar" role="complementary" aria-label="Page navigation">
+            <p class="sidebar-title">On This Page</p>
+            <nav aria-label="Section navigation">
+                <ul class="sidebar-nav">
+                    <li><a href="#front-matter" class="sidebar-link">Front Matter</a></li>
+                    <li><a href="#math" class="sidebar-link">Mathematics</a></li>
+                    <li><a href="#citations" class="sidebar-link">Citations</a></li>
+                    <li><a href="#references" class="sidebar-link">Cross-References</a></li>
+                    <li><a href="#environments" class="sidebar-link">Environments</a></li>
+                    <li><a href="#footnotes" class="sidebar-link">Footnotes</a></li>
+                    <li><a href="#toc" class="sidebar-link">Table of Contents</a></li>
+                    <li><a href="#tables" class="sidebar-link">Tables</a></li>
+                    <li><a href="#extensions" class="sidebar-link">Other Extensions</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <article class="content" itemprop="articleBody">
+            <!-- Front Matter -->
+            <section id="front-matter" class="section-anchor" aria-labelledby="front-matter-heading">
+                <h2 id="front-matter-heading">Front Matter</h2>
+                
+                <p>Document metadata is defined in TOML front matter, delimited by <code>+++</code>:</p>
+                
+<pre><code>+++
+title = "Document Title"
+subtitle = "A Subtitle"
+authors = ["Jane Doe", "John Smith"]
+date = "2026-02-01"
+keywords = ["markdown", "academic", "writing"]
+institution = "University"
+
+[macros]
+R = "\\mathbb{R}"
+N = "\\mathbb{N}"
+vec = "\\mathbf{#1}"
+norm = "\\left\\| #1 \\right\\|"
+
+[bibliography]
+path = "references.bib"
++++</code></pre>
+
+                <h3 id="metadata-fields">Metadata Fields</h3>
+                <table>
+                    <thead>
+                        <tr><th scope="col">Field</th><th scope="col">Type</th><th scope="col">Description</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>title</code></td><td>String</td><td>Document title</td></tr>
+                        <tr><td><code>subtitle</code></td><td>String</td><td>Document subtitle</td></tr>
+                        <tr><td><code>authors</code></td><td>Array</td><td>List of author names</td></tr>
+                        <tr><td><code>date</code></td><td>String</td><td>Publication date</td></tr>
+                        <tr><td><code>keywords</code></td><td>Array</td><td>Document keywords</td></tr>
+                        <tr><td><code>institution</code></td><td>String</td><td>Affiliated institution</td></tr>
+                    </tbody>
+                </table>
+
+                <h3 id="custom-macros">Custom Macros</h3>
+                <p>Define LaTeX macros in the <code>[macros]</code> section. Macros can take arguments using <code>#1</code>, <code>#2</code>, etc.:</p>
+                
+<pre><code>[macros]
+R = "\\mathbb{R}"           # \R expands to \mathbb{R}
+vec = "\\mathbf{#1}"        # \vec{x} expands to \mathbf{x}
+inner = "\\langle #1, #2 \\rangle"  # Two arguments</code></pre>
+            </section>
+
+            <!-- Mathematics -->
+            <section id="math" class="section-anchor" aria-labelledby="math-heading">
+                <h2 id="math-heading">Mathematics</h2>
+                
+                <p>Inline math uses single dollar signs, display math uses double:</p>
+                
+                <table>
+                    <thead>
+                        <tr><th scope="col">Type</th><th scope="col">Syntax</th><th scope="col">Result</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Inline</td>
+                            <td><code>$E = mc^2$</code></td>
+                            <td>\(E = mc^2\)</td>
+                        </tr>
+                        <tr>
+                            <td>Display</td>
+                            <td><code>$$\int_0^1 x\,dx$$</code></td>
+                            <td>\[\int_0^1 x\,dx = \frac{1}{2}\]</td>
+                        </tr>
+                        <tr>
+                            <td>Labeled</td>
+                            <td><code>$$...$$ {#eq:label}</code></td>
+                            <td>Numbered, referenceable equation</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 id="labeled-equations">Labeled Equations</h3>
+                <p>Add labels to reference equations elsewhere in the document:</p>
+                
+<pre><code>The Gaussian integral is given by:
+
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$ {#eq:gaussian}
+
+As shown in @eq:gaussian, the result is $\sqrt{\pi}$.</code></pre>
+
+                <h3 id="using-macros">Using Custom Macros</h3>
+                <p>Macros defined in front matter expand in all math contexts:</p>
+                
+<pre><code>For all $x \in \R$, we have $\norm{x} \geq 0$.</code></pre>
+            </section>
+
+            <!-- Citations -->
+            <section id="citations" class="section-anchor" aria-labelledby="citations-heading">
+                <h2 id="citations-heading">Citations</h2>
+                
+                <p>Citations use bracket syntax with BibTeX keys:</p>
+                
+                <table>
+                    <thead>
+                        <tr><th scope="col">Syntax</th><th scope="col">Description</th><th scope="col">Output Style</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>[@knuth1984]</code></td><td>Single citation</td><td>[1] or (Knuth, 1984)</td></tr>
+                        <tr><td><code>[@knuth1984; @lamport1994]</code></td><td>Multiple citations</td><td>[1, 2]</td></tr>
+                        <tr><td><code>[@knuth1984, p. 42]</code></td><td>With page locator</td><td>[1, p. 42]</td></tr>
+                        <tr><td><code>[@knuth1984, Ch. 3]</code></td><td>With chapter locator</td><td>[1, Ch. 3]</td></tr>
+                        <tr><td><code>[@knuth1984, pp. 42-45]</code></td><td>Page range</td><td>[1, pp. 42-45]</td></tr>
+                    </tbody>
+                </table>
+
+                <h3 id="bibliography-setup">Bibliography</h3>
+                <p>Specify a BibTeX file in the front matter:</p>
+                
+<pre><code>+++
+[bibliography]
+path = "references.bib"
++++</code></pre>
+
+                <p>A bibliography is automatically generated from cited works at the end of the document.</p>
+
+                <h3 id="bibtex-example">BibTeX Example</h3>
+<pre><code>@book{knuth1984,
+    author = {Donald E. Knuth},
+    title = {The TeXbook},
+    publisher = {Addison-Wesley},
+    year = {1984}
+}
+
+@article{lamport1994,
+    author = {Leslie Lamport},
+    title = {LaTeX: A Document Preparation System},
+    journal = {Addison-Wesley},
+    year = {1994}
+}</code></pre>
+            </section>
+
+            <!-- Cross-References -->
+            <section id="references" class="section-anchor" aria-labelledby="references-heading">
+                <h2 id="references-heading">Cross-References</h2>
+                
+                <p>Label elements with <code>{#label}</code> and reference them with <code>@label</code>:</p>
+                
+<pre><code># Introduction {#sec:intro}
+
+See @sec:intro for the introduction.
+
+$$E = mc^2$$ {#eq:einstein}
+
+Equation @eq:einstein shows mass-energy equivalence.
+
+::: theorem {#thm:fermat}
+There are no positive integers $a$, $b$, and $c$ that satisfy 
+$a^n + b^n = c^n$ for any integer $n > 2$.
+:::
+
+By @thm:fermat, we conclude...</code></pre>
+
+                <h3 id="label-conventions">Label Conventions</h3>
+                <p>Labels conventionally use prefixes to indicate type:</p>
+                
+                <table>
+                    <thead>
+                        <tr><th scope="col">Prefix</th><th scope="col">Use For</th><th scope="col">Example</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>sec:</code></td><td>Sections</td><td><code>{#sec:intro}</code></td></tr>
+                        <tr><td><code>eq:</code></td><td>Equations</td><td><code>{#eq:euler}</code></td></tr>
+                        <tr><td><code>thm:</code></td><td>Theorems</td><td><code>{#thm:main}</code></td></tr>
+                        <tr><td><code>lem:</code></td><td>Lemmas</td><td><code>{#lem:helper}</code></td></tr>
+                        <tr><td><code>def:</code></td><td>Definitions</td><td><code>{#def:group}</code></td></tr>
+                        <tr><td><code>fig:</code></td><td>Figures</td><td><code>{#fig:diagram}</code></td></tr>
+                        <tr><td><code>tab:</code></td><td>Tables</td><td><code>{#tab:results}</code></td></tr>
+                        <tr><td><code>alg:</code></td><td>Algorithms</td><td><code>{#alg:sort}</code></td></tr>
+                    </tbody>
+                </table>
+
+                <h3 id="automatic-numbering">Automatic Numbering</h3>
+                <p>Referenced elements are automatically numbered. When referencing, the number is inserted automatically:</p>
+                
+                <ul>
+                    <li><code>@sec:intro</code> → "Section 1"</li>
+                    <li><code>@eq:euler</code> → "Equation (1)"</li>
+                    <li><code>@thm:main</code> → "Theorem 1"</li>
+                </ul>
+            </section>
+
+            <!-- Environments -->
+            <section id="environments" class="section-anchor" aria-labelledby="environments-heading">
+                <h2 id="environments-heading">Environments</h2>
+                
+                <p>Environments use fenced blocks with <code>:::</code>:</p>
+                
+<pre><code>::: theorem {#thm:main}
+For every $\epsilon > 0$, there exists $\delta > 0$ such that
+$|x - a| < \delta$ implies $|f(x) - f(a)| < \epsilon$.
+:::
+
+::: proof
+By construction, choose $\delta = \epsilon / 2$. Then for 
+$|x - a| < \delta$, we have...
+:::
+
+::: definition {#def:continuous}
+A function $f$ is **continuous** at $a$ if the limit of $f(x)$ 
+as $x$ approaches $a$ equals $f(a)$.
+:::</code></pre>
+
+                <h3 id="supported-environments">Supported Environments</h3>
+                <table>
+                    <thead>
+                        <tr><th scope="col">Environment</th><th scope="col">Aliases</th><th scope="col">Numbered</th><th scope="col">Notes</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>theorem</code></td><td><code>thm</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>lemma</code></td><td><code>lem</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>proposition</code></td><td><code>prop</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>corollary</code></td><td><code>cor</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>definition</code></td><td><code>def</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>example</code></td><td><code>ex</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>remark</code></td><td><code>rem</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>proof</code></td><td><code>pf</code></td><td>No</td><td>Ends with ∎</td></tr>
+                        <tr><td><code>figure</code></td><td><code>fig</code></td><td>Yes</td><td>Last paragraph is caption</td></tr>
+                        <tr><td><code>table</code></td><td><code>tab</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>algorithm</code></td><td><code>algo</code></td><td>Yes</td><td></td></tr>
+                        <tr><td><code>abstract</code></td><td></td><td>No</td><td>Document abstract</td></tr>
+                        <tr><td><code>note</code></td><td></td><td>No</td><td>Callout box</td></tr>
+                        <tr><td><code>warning</code></td><td></td><td>No</td><td>Warning callout</td></tr>
+                    </tbody>
+                </table>
+
+                <h3 id="figures">Figures</h3>
+                <p>The last paragraph in a figure environment becomes the caption:</p>
+                
+<pre><code>::: figure {#fig:results}
+![](chart.png)
+
+Experimental results showing convergence over 100 epochs.
+:::</code></pre>
+            </section>
+
+            <!-- Footnotes -->
+            <section id="footnotes" class="section-anchor" aria-labelledby="footnotes-heading">
+                <h2 id="footnotes-heading">Footnotes</h2>
+                
+                <p>Two styles of footnotes are supported:</p>
+
+                <h3 id="inline-footnotes">Inline Footnotes</h3>
+<pre><code>This is some text with an inline footnote^[The footnote content 
+appears right here in the source].</code></pre>
+
+                <h3 id="reference-footnotes">Reference-Style Footnotes</h3>
+<pre><code>This is some text with a reference footnote[^1].
+
+Later in the document, another footnote[^longnote].
+
+[^1]: Short footnote content.
+
+[^longnote]: Longer footnote that can span multiple lines.
+    Indented lines are included in the footnote.
+    
+    Even multiple paragraphs work.</code></pre>
+            </section>
+
+            <!-- Table of Contents -->
+            <section id="toc" class="section-anchor" aria-labelledby="toc-heading">
+                <h2 id="toc-heading">Table of Contents</h2>
+                
+                <p>Insert a table of contents with:</p>
+                
+<pre><code>[[toc]]</code></pre>
+
+                <p>The TOC is automatically generated from all headings in the document. Each entry links to its corresponding section.</p>
+            </section>
+
+            <!-- Tables -->
+            <section id="tables" class="section-anchor" aria-labelledby="tables-heading">
+                <h2 id="tables-heading">Tables</h2>
+                
+                <p>Standard Markdown pipe tables with optional captions and labels:</p>
+                
+<pre><code>| Model    | Accuracy | F1 Score |
+|----------|:--------:|---------:|
+| Baseline | 0.82     | 0.79     |
+| Proposed | 0.91     | 0.88     |
+| Ensemble | 0.93     | 0.91     |
+
+Table: Performance comparison on the test set. {#tab:results}</code></pre>
+
+                <h3 id="column-alignment">Column Alignment</h3>
+                <ul>
+                    <li><code>:---</code> or <code>---</code> — Left aligned (default)</li>
+                    <li><code>:---:</code> — Center aligned</li>
+                    <li><code>---:</code> — Right aligned</li>
+                </ul>
+
+                <p>Reference tables with <code>@tab:results</code>.</p>
+            </section>
+
+            <!-- Other Extensions -->
+            <section id="extensions" class="section-anchor" aria-labelledby="extensions-heading">
+                <h2 id="extensions-heading">Other Extensions</h2>
+
+                <h3 id="subscript-superscript">Subscript and Superscript</h3>
+<pre><code>H~2~O is water.     # Subscript: H₂O
+x^2^ is x squared.  # Superscript: x²</code></pre>
+
+                <h3 id="small-caps">Small Caps</h3>
+<pre><code>[sc]Small Caps Text[/sc]</code></pre>
+
+                <h3 id="description-lists">Description Lists</h3>
+<pre><code>Term One
+: Definition of term one.
+
+Term Two
+: Definition of term two.
+: Second paragraph for term two.</code></pre>
+
+                <h3 id="page-breaks">Page Breaks</h3>
+<pre><code>---pagebreak---</code></pre>
+
+                <h3 id="appendix-marker">Appendix Marker</h3>
+                <p>Mark the start of appendices (affects numbering):</p>
+<pre><code>---appendix---
+
+# Appendix A {#app:proofs}
+
+Detailed proofs go here.</code></pre>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer" role="contentinfo">
+                <div class="footer-container">
+                    <p>
+                        markdown-academic is open source under the 
+                        <a href="https://github.com/quinnjr/markdown-academic/blob/main/LICENSE" rel="license">MIT License</a>.
+                    </p>
+                    <p>
+                        Created by <a href="mailto:quinn.josephr@protonmail.com" rel="author">Joseph R. Quinn</a>
+                    </p>
+                </div>
+            </footer>
+        </article>
+    </main>
+
+    <script>
+        // Highlight active sidebar link on scroll
+        const sections = document.querySelectorAll('.section-anchor');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    sidebarLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + entry.target.id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+        
+        sections.forEach(section => observer.observe(section));
+    </script>
+</body>
+</html>

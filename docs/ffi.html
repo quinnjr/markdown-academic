@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="https://schema.org/TechArticle">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>FFI / Python Bindings — markdown-academic | C API, Python, WebAssembly</title>
+    <meta name="title" content="FFI / Python Bindings — markdown-academic | C API, Python, WebAssembly">
+    <meta name="description" content="Use markdown-academic from Python, JavaScript, and other languages. Complete guide to the C FFI API, Python package with pip install, ctypes bindings, and WebAssembly for browser and Node.js.">
+    <meta name="keywords" content="Python markdown, FFI, C API, WebAssembly, WASM, Python bindings, ctypes, academic writing Python, markdown parser Python, JavaScript markdown">
+    <meta name="author" content="Joseph R. Quinn">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://quinnjr.github.io/markdown-academic/ffi.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://quinnjr.github.io/markdown-academic/ffi.html">
+    <meta property="og:title" content="FFI / Python Bindings — markdown-academic">
+    <meta property="og:description" content="Use markdown-academic from Python, JavaScript, and other languages via FFI and WebAssembly.">
+    <meta property="og:image" content="https://quinnjr.github.io/markdown-academic/og-image.png">
+    <meta property="og:site_name" content="markdown-academic">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://quinnjr.github.io/markdown-academic/ffi.html">
+    <meta name="twitter:title" content="FFI / Python Bindings — markdown-academic">
+    <meta name="twitter:description" content="Use markdown-academic from Python, JavaScript, and other languages via FFI and WebAssembly.">
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#8b2332">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data: TechArticle -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "headline": "markdown-academic FFI and Python Bindings",
+        "description": "Complete guide to using markdown-academic from Python, JavaScript, and other languages via FFI and WebAssembly.",
+        "author": {
+            "@type": "Person",
+            "name": "Joseph R. Quinn"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "markdown-academic"
+        },
+        "mainEntityOfPage": "https://quinnjr.github.io/markdown-academic/ffi.html",
+        "datePublished": "2026-02-01",
+        "dateModified": "2026-02-03",
+        "proficiencyLevel": "Intermediate",
+        "programmingLanguage": ["Python", "C", "JavaScript"],
+        "dependencies": "markdown-academic shared library"
+    }
+    </script>
+    
+    <!-- Structured Data: FAQPage for AEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "How do I use markdown-academic in Python?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Install the Python package with: cd python && pip install -e . Then use: import markdown_academic as mda; html = mda.render('# Hello $E=mc^2$')"
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I build the markdown-academic shared library?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Run: cd rust && cargo build --release. The output will be libmarkdown_academic.so (Linux), libmarkdown_academic.dylib (macOS), or markdown_academic.dll (Windows)."
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "Can I use markdown-academic in JavaScript?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Yes, build with the wasm feature: wasm-pack build --target web --features wasm. Then import and use: import { renderMarkdown } from './pkg/markdown_academic.js';"
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "How do I generate PDFs from Python?",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "Build with PDF support: cargo build --release --features pdf. Then in Python: if mda.has_pdf_support(): mda.render_pdf_to_file('# Doc', 'output.pdf')"
+                }
+            }
+        ]
+    }
+    </script>
+    
+    <!-- Structured Data: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Home",
+                "item": "https://quinnjr.github.io/markdown-academic/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "FFI / Python",
+                "item": "https://quinnjr.github.io/markdown-academic/ffi.html"
+            }
+        ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand" aria-label="markdown-academic home">
+                markdown-<span>academic</span>
+            </a>
+            <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu" aria-expanded="false">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="syntax.html" class="nav-link">Syntax</a>
+                <a href="api.html" class="nav-link">Rust API</a>
+                <a href="ffi.html" class="nav-link active" aria-current="page">FFI</a>
+                <a href="example.html" class="nav-link">Example</a>
+                <a href="whitepaper.html" class="nav-link">Whitepaper</a>
+                <a href="https://github.com/quinnjr/markdown-academic" class="nav-link nav-link-icon" rel="noopener noreferrer" target="_blank">
+                    GitHub
+                    <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header main" role="banner">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+            <a href="index.html">Home</a> / <span aria-current="page">FFI / Python</span>
+        </nav>
+        <h1 itemprop="headline">FFI / Python Bindings</h1>
+        <p itemprop="description">C-compatible API and Python package for integration with other languages.</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main main-with-sidebar" role="main" id="main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar" role="complementary" aria-label="Page navigation">
+            <p class="sidebar-title">On This Page</p>
+            <nav aria-label="Section navigation">
+                <ul class="sidebar-nav">
+                    <li><a href="#building" class="sidebar-link">Building</a></li>
+                    <li><a href="#python" class="sidebar-link">Python Package</a></li>
+                    <li><a href="#c-api" class="sidebar-link">C API</a></li>
+                    <li><a href="#ctypes" class="sidebar-link">Low-level ctypes</a></li>
+                    <li><a href="#wasm" class="sidebar-link">WebAssembly</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <article class="content" itemprop="articleBody">
+            <!-- Building -->
+            <section id="building" class="section-anchor" aria-labelledby="building-heading">
+                <h2 id="building-heading">Building the Shared Library</h2>
+                
+<pre><code>cd rust
+cargo build --release
+
+# Output locations:
+# Linux:   target/release/libmarkdown_academic.so
+# macOS:   target/release/libmarkdown_academic.dylib
+# Windows: target/release/markdown_academic.dll</code></pre>
+
+                <p>For PDF support, add the feature flag:</p>
+                
+<pre><code>cargo build --release --features pdf</code></pre>
+            </section>
+
+            <!-- Python Package -->
+            <section id="python" class="section-anchor" aria-labelledby="python-heading">
+                <h2 id="python-heading">Python Package</h2>
+                
+                <p>The recommended way to use markdown-academic from Python:</p>
+
+                <h3 id="python-installation">Installation</h3>
+<pre><code># Build the Rust library first
+cd rust && cargo build --release --features pdf
+
+# Install the Python package
+cd ../python && pip install -e .</code></pre>
+
+                <h3 id="python-basic-usage">Basic Usage</h3>
+<pre><code>import markdown_academic as mda
+
+# Render to HTML fragment
+html = mda.render("# Hello\n\nThe equation $E=mc^2$ is famous.")
+print(html)
+
+# Render complete HTML document
+html = mda.render("# Hello", standalone=True)
+
+# Choose math backend
+html = mda.render("$x^2$", math_backend=mda.MathBackend.MATHJAX)</code></pre>
+
+                <h3 id="python-pdf">PDF Generation</h3>
+<pre><code>import markdown_academic as mda
+
+# Check if PDF support is available
+if mda.has_pdf_support():
+    # Render to PDF bytes
+    pdf_bytes = mda.render_pdf("# My Document\n\n$E=mc^2$")
+    with open("output.pdf", "wb") as f:
+        f.write(pdf_bytes)
+    
+    # Or write directly to file with options
+    mda.render_pdf_to_file(
+        "# My Document",
+        "output.pdf",
+        paper_size=mda.PaperSize.A4,
+        title="My Document"
+    )</code></pre>
+
+                <h3 id="python-document-class">Document Class</h3>
+                <p>Parse once, render multiple times:</p>
+                
+<pre><code>import markdown_academic as mda
+
+# Using context manager for automatic cleanup
+with mda.Document("# Hello $E=mc^2$") as doc:
+    html_fragment = doc.render()
+    html_full = doc.render(standalone=True)
+    
+    # Access metadata
+    print(doc.title)
+    print(doc.authors)</code></pre>
+
+                <h3 id="python-config">Configuration Options</h3>
+<pre><code>import markdown_academic as mda
+
+# Math backends
+mda.MathBackend.KATEX    # Fast, client-side (default)
+mda.MathBackend.MATHJAX  # Full LaTeX support
+mda.MathBackend.MATHML   # Native browser rendering
+
+# Paper sizes (for PDF)
+mda.PaperSize.LETTER     # US Letter (default)
+mda.PaperSize.A4         # ISO A4
+
+# Full render options
+html = mda.render(
+    source,
+    standalone=True,
+    math_backend=mda.MathBackend.KATEX,
+    title="Document Title",
+    custom_css="body { font-family: Georgia; }",
+    strict_citations=False,
+    strict_references=False,
+    base_path="/path/to/document"
+)</code></pre>
+
+                <h3 id="python-errors">Error Handling</h3>
+<pre><code>import markdown_academic as mda
+
+try:
+    html = mda.render(source, strict_citations=True)
+except mda.ParseError as e:
+    print(f"Parse error: {e}")
+except mda.ResolutionError as e:
+    print(f"Resolution error: {e}")
+except mda.RenderError as e:
+    print(f"Render error: {e}")</code></pre>
+            </section>
+
+            <!-- C API -->
+            <section id="c-api" class="section-anchor" aria-labelledby="c-api-heading">
+                <h2 id="c-api-heading">C API</h2>
+                
+                <h3 id="c-header">Header File</h3>
+<pre><code>// markdown_academic.h
+#ifndef MARKDOWN_ACADEMIC_H
+#define MARKDOWN_ACADEMIC_H
+
+#include &lt;stdint.h&gt;
+
+// Opaque document handle
+typedef struct MdAcademicDocument MdAcademicDocument;
+
+// Configuration options
+typedef struct {
+    int math_backend;     // 0 = KaTeX, 1 = MathJax, 2 = MathML
+    int standalone;       // 0 = fragment, 1 = full HTML document
+    const char* base_path;
+    const char* title;
+    int strict_citations;
+    int strict_references;
+} MdAcademicConfig;
+
+// Result type (check error field first)
+typedef struct {
+    char* data;           // Result string (NULL on error)
+    char* error;          // Error message (NULL on success)
+} MdAcademicResult;
+
+// === One-shot API ===
+
+// Parse and render in one step
+MdAcademicResult mdacademic_parse_and_render(
+    const char* input,
+    const MdAcademicConfig* config  // NULL for defaults
+);
+
+// === Two-step API ===
+
+// Parse input into a document
+MdAcademicDocument* mdacademic_parse(const char* input);
+
+// Render document to HTML
+MdAcademicResult mdacademic_render_html(
+    const MdAcademicDocument* doc,
+    const MdAcademicConfig* config
+);
+
+// === Memory Management ===
+
+void mdacademic_free_string(char* s);
+void mdacademic_free_document(MdAcademicDocument* doc);
+void mdacademic_free_result(MdAcademicResult result);
+
+// === Utility ===
+
+const char* mdacademic_version(void);
+int mdacademic_has_pdf_support(void);
+
+#endif</code></pre>
+
+                <h3 id="c-usage">Usage Example (C)</h3>
+<pre><code>#include "markdown_academic.h"
+#include &lt;stdio.h&gt;
+
+int main() {
+    const char* input = "# Hello\n\nThe equation $E=mc^2$ is famous.";
+    
+    MdAcademicConfig config = {
+        .math_backend = 0,  // KaTeX
+        .standalone = 1,    // Full HTML document
+        .base_path = NULL,
+        .title = "My Document",
+        .strict_citations = 0,
+        .strict_references = 0
+    };
+    
+    MdAcademicResult result = mdacademic_parse_and_render(input, &config);
+    
+    if (result.error != NULL) {
+        fprintf(stderr, "Error: %s\n", result.error);
+        mdacademic_free_result(result);
+        return 1;
+    }
+    
+    printf("%s\n", result.data);
+    mdacademic_free_result(result);  // Always free!
+    
+    return 0;
+}</code></pre>
+            </section>
+
+            <!-- Low-level ctypes -->
+            <section id="ctypes" class="section-anchor" aria-labelledby="ctypes-heading">
+                <h2 id="ctypes-heading">Low-level ctypes (Python)</h2>
+                
+                <p>For reference, here's how to use the C API directly with ctypes:</p>
+                
+<pre><code>import ctypes
+from ctypes import c_char_p, c_int, POINTER, Structure
+
+# Load the library
+lib = ctypes.CDLL("./libmarkdown_academic.so")
+
+class MdAcademicConfig(Structure):
+    _fields_ = [
+        ("math_backend", c_int),
+        ("standalone", c_int),
+        ("base_path", c_char_p),
+        ("title", c_char_p),
+        ("strict_citations", c_int),
+        ("strict_references", c_int),
+    ]
+
+class MdAcademicResult(Structure):
+    _fields_ = [
+        ("data", c_char_p),
+        ("error", c_char_p),
+    ]
+
+# Set up function signatures
+lib.mdacademic_parse_and_render.argtypes = [c_char_p, POINTER(MdAcademicConfig)]
+lib.mdacademic_parse_and_render.restype = MdAcademicResult
+lib.mdacademic_free_result.argtypes = [MdAcademicResult]
+lib.mdacademic_version.restype = c_char_p
+
+def render_markdown(text: str, standalone: bool = False) -> str:
+    config = MdAcademicConfig(
+        math_backend=0,
+        standalone=1 if standalone else 0,
+        base_path=None,
+        title=None,
+        strict_citations=0,
+        strict_references=0
+    )
+    
+    result = lib.mdacademic_parse_and_render(
+        text.encode('utf-8'),
+        ctypes.byref(config)
+    )
+    
+    if result.error:
+        error_msg = result.error.decode('utf-8')
+        lib.mdacademic_free_result(result)
+        raise ValueError(error_msg)
+    
+    html = result.data.decode('utf-8')
+    lib.mdacademic_free_result(result)
+    return html
+
+# Usage
+html = render_markdown("# Hello\n\n$E=mc^2$", standalone=True)
+print(html)</code></pre>
+            </section>
+
+            <!-- WebAssembly -->
+            <section id="wasm" class="section-anchor" aria-labelledby="wasm-heading">
+                <h2 id="wasm-heading">WebAssembly</h2>
+                
+                <p>Build with the <code>wasm</code> feature for browser/Node.js usage:</p>
+                
+<pre><code># Install wasm-pack if needed
+cargo install wasm-pack
+
+# Build the WASM package
+cd rust
+wasm-pack build --target web --features wasm</code></pre>
+
+                <h3 id="wasm-javascript">JavaScript Usage</h3>
+<pre><code>import init, { renderMarkdown, RenderOptions } from './pkg/markdown_academic.js';
+
+async function main() {
+    // Initialize the WASM module
+    await init();
+    
+    // Simple usage
+    const html = renderMarkdown('# Hello $x^2$');
+    console.log(html);
+    
+    // With options
+    const options = new RenderOptions();
+    options.setMathBackend('katex');
+    options.setStandalone(true);
+    options.setTitle('My Document');
+    
+    const fullHtml = renderMarkdown('# Hello', options);
+    document.body.innerHTML = fullHtml;
+}
+
+main();</code></pre>
+
+                <h3 id="wasm-nodejs">Node.js Usage</h3>
+<pre><code>const { renderMarkdown, RenderOptions } = require('./pkg/markdown_academic.js');
+
+const input = `
+# Introduction {#sec:intro}
+
+The equation $E = mc^2$ is famous.
+
+See @sec:intro for more details.
+`;
+
+const options = new RenderOptions();
+options.setStandalone(true);
+
+const html = renderMarkdown(input, options);
+console.log(html);</code></pre>
+
+                <h3 id="wasm-browser">Browser Script Tag</h3>
+<pre><code>&lt;script type="module"&gt;
+import init, { renderMarkdown } from './pkg/markdown_academic.js';
+
+init().then(() => {
+    const input = document.getElementById('editor').value;
+    const html = renderMarkdown(input);
+    document.getElementById('preview').innerHTML = html;
+});
+&lt;/script&gt;</code></pre>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer" role="contentinfo">
+                <div class="footer-container">
+                    <p>
+                        markdown-academic is open source under the 
+                        <a href="https://github.com/quinnjr/markdown-academic/blob/main/LICENSE" rel="license">MIT License</a>.
+                    </p>
+                    <p>
+                        Created by <a href="mailto:quinn.josephr@protonmail.com" rel="author">Joseph R. Quinn</a>
+                    </p>
+                </div>
+            </footer>
+        </article>
+    </main>
+
+    <script>
+        // Highlight active sidebar link on scroll
+        const sections = document.querySelectorAll('.section-anchor');
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    sidebarLinks.forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href') === '#' + entry.target.id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+        
+        sections.forEach(section => observer.observe(section));
+    </script>
+</body>
+</html>

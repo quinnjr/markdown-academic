@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="https://schema.org/ScholarlyArticle">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
+    <title>Example Paper — markdown-academic Demo | Complete Academic Paper</title>
+    <meta name="title" content="Example Paper — markdown-academic Demo | Complete Academic Paper">
+    <meta name="description" content="A complete example academic paper demonstrating all markdown-academic features: math equations, citations, cross-references, theorem environments, figures, and tables.">
+    <meta name="keywords" content="markdown-academic example, academic paper demo, LaTeX math example, BibTeX citations, theorem environments, cross-references demo">
+    <meta name="author" content="Joseph R. Quinn">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://quinnjr.github.io/markdown-academic/example.html">
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://quinnjr.github.io/markdown-academic/example.html">
+    <meta property="og:title" content="Example Paper — markdown-academic Demo">
+    <meta property="og:description" content="A complete example academic paper demonstrating all markdown-academic features.">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Example Paper — markdown-academic Demo">
+    <meta name="twitter:description" content="A complete example academic paper demonstrating all markdown-academic features.">
+    
+    <!-- Theme -->
+    <meta name="theme-color" content="#8b2332">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "ScholarlyArticle",
+        "name": "On the Foundations of Mathematical Analysis: A Tutorial",
+        "headline": "A comprehensive tutorial on mathematical analysis fundamentals",
+        "description": "This example paper demonstrates markdown-academic features while teaching basic concepts from mathematical analysis.",
+        "author": {
+            "@type": "Person",
+            "name": "Joseph R. Quinn"
+        },
+        "datePublished": "2026-02-03",
+        "publisher": {
+            "@type": "Organization",
+            "name": "markdown-academic"
+        },
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "markdown-academic",
+            "url": "https://quinnjr.github.io/markdown-academic/"
+        }
+    }
+    </script>
+    
+    <style>
+        /* Paper-specific styles */
+        .paper-header {
+            text-align: center;
+            padding: 3rem 0 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        .paper-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--ink);
+            margin: 0 0 0.5rem;
+            line-height: 1.2;
+        }
+        .paper-subtitle {
+            font-size: 1.25rem;
+            color: var(--muted);
+            font-style: italic;
+            margin: 0 0 1.5rem;
+        }
+        .paper-authors {
+            font-size: 1.1rem;
+            margin: 0 0 0.5rem;
+        }
+        .paper-affiliation {
+            font-size: 0.95rem;
+            color: var(--muted);
+            margin: 0 0 0.5rem;
+        }
+        .paper-date {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        
+        .abstract {
+            background: var(--surface);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+        .abstract-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 0 0 0.75rem;
+            color: var(--ink);
+        }
+        .abstract p {
+            margin: 0;
+            line-height: 1.7;
+        }
+        
+        .keywords {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-top: 1rem;
+        }
+        .keywords strong {
+            color: var(--ink);
+        }
+        
+        .theorem, .lemma, .definition, .proposition, .corollary {
+            background: #f0f7ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+        .theorem-title, .lemma-title, .definition-title, .proposition-title, .corollary-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1e40af;
+        }
+        
+        .proof {
+            background: var(--surface);
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .proof-title {
+            font-style: italic;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .qed {
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+        
+        .example, .remark {
+            background: #fefce8;
+            border-left: 4px solid #ca8a04;
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+        .example-title, .remark-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #854d0e;
+        }
+        
+        .figure {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--surface);
+            border-radius: var(--radius);
+        }
+        .figure-content {
+            margin-bottom: 1rem;
+        }
+        .figure-caption {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .figure-caption strong {
+            color: var(--ink);
+        }
+        
+        .equation-display {
+            margin: 1.5rem 0;
+            text-align: center;
+            overflow-x: auto;
+        }
+        .equation-number {
+            float: right;
+            color: var(--muted);
+        }
+        
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+        }
+        table.data-table th, table.data-table td {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+        table.data-table th {
+            background: var(--surface);
+            font-weight: 600;
+        }
+        table.data-table caption {
+            caption-side: bottom;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+            text-align: left;
+        }
+        
+        .bibliography {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+        .bib-entry {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            text-indent: -2rem;
+            line-height: 1.6;
+        }
+        .bib-key {
+            font-weight: 600;
+            color: var(--accent);
+        }
+        
+        .toc {
+            background: var(--surface);
+            padding: 1.5rem 2rem;
+            border-radius: var(--radius);
+            margin: 2rem 0;
+        }
+        .toc-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .toc-list li {
+            margin: 0.5rem 0;
+        }
+        .toc-list a {
+            color: var(--ink);
+            text-decoration: none;
+        }
+        .toc-list a:hover {
+            color: var(--accent);
+        }
+        .toc-l2 {
+            padding-left: 1.5rem;
+        }
+        
+        .ref-link {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .ref-link:hover {
+            text-decoration: underline;
+        }
+        
+        .footnote-ref {
+            font-size: 0.75em;
+            vertical-align: super;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .footnotes {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .footnotes ol {
+            padding-left: 1.5rem;
+        }
+        .footnotes li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .source-toggle {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: #1a1a2e;
+            border-radius: var(--radius);
+        }
+        .source-toggle summary {
+            cursor: pointer;
+            color: #e0e0e0;
+            font-weight: 500;
+            padding: 0.5rem;
+        }
+        .source-toggle pre {
+            margin: 1rem 0 0;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            background: #0d0d1a;
+            border-radius: calc(var(--radius) - 4px);
+        }
+        .source-toggle code {
+            color: #a0a0a0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand" aria-label="markdown-academic home">
+                <span class="brand-icon" aria-hidden="true">📄</span>
+                <span class="brand-text">markdown-academic</span>
+            </a>
+            <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Toggle navigation menu" aria-expanded="false">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+            <div class="nav-links">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="syntax.html" class="nav-link">Syntax</a>
+                <a href="api.html" class="nav-link">Rust API</a>
+                <a href="ffi.html" class="nav-link">FFI</a>
+                <a href="example.html" class="nav-link active" aria-current="page">Example</a>
+                <a href="whitepaper.html" class="nav-link">Whitepaper</a>
+                <a href="https://github.com/quinnjr/markdown-academic" class="nav-link nav-link-icon" rel="noopener noreferrer" target="_blank">
+                    GitHub
+                    <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main" role="main">
+        <article class="content paper" itemscope itemtype="https://schema.org/ScholarlyArticle">
+            <!-- Paper Header -->
+            <header class="paper-header">
+                <h1 class="paper-title" itemprop="headline">On the Foundations of Mathematical Analysis</h1>
+                <p class="paper-subtitle">A Tutorial Introduction with Examples</p>
+                <p class="paper-authors" itemprop="author">Joseph R. Quinn</p>
+                <p class="paper-affiliation">Department of Mathematics</p>
+                <p class="paper-date"><time datetime="2026-02-03" itemprop="datePublished">February 3, 2026</time></p>
+            </header>
+            
+            <!-- Abstract -->
+            <section class="abstract" aria-labelledby="abstract-title">
+                <h2 class="abstract-title" id="abstract-title">Abstract</h2>
+                <p itemprop="abstract">
+                    This paper serves as both a tutorial introduction to fundamental concepts in mathematical analysis 
+                    and a demonstration of the <strong>markdown-academic</strong> document format. We cover essential 
+                    topics including limits, continuity, differentiation, and integration, while showcasing 
+                    features such as theorem environments, cross-references, citations, and mathematical typesetting.
+                    The goal is to illustrate how academic papers can be written using simple, readable Markdown syntax
+                    while maintaining the rigor and formatting standards expected of mathematical writing.
+                </p>
+                <p class="keywords"><strong>Keywords:</strong> mathematical analysis, calculus, limits, continuity, markdown-academic</p>
+            </section>
+            
+            <!-- Table of Contents -->
+            <nav class="toc" aria-labelledby="toc-title">
+                <h2 class="toc-title" id="toc-title">Contents</h2>
+                <ol class="toc-list">
+                    <li><a href="#sec-intro">1. Introduction</a></li>
+                    <li><a href="#sec-limits">2. Limits and Continuity</a>
+                        <ol class="toc-list toc-l2">
+                            <li><a href="#sec-limits-def">2.1 Definition of Limits</a></li>
+                            <li><a href="#sec-continuity">2.2 Continuity</a></li>
+                        </ol>
+                    </li>
+                    <li><a href="#sec-differentiation">3. Differentiation</a></li>
+                    <li><a href="#sec-integration">4. Integration</a></li>
+                    <li><a href="#sec-conclusion">5. Conclusion</a></li>
+                </ol>
+            </nav>
+            
+            <!-- Section 1: Introduction -->
+            <section id="sec-intro" aria-labelledby="heading-intro">
+                <h2 id="heading-intro"><span class="section-number">1</span> Introduction</h2>
+                
+                <p>
+                    Mathematical analysis forms the rigorous foundation of calculus, providing precise definitions
+                    and proofs for concepts that are often introduced intuitively. This paper demonstrates
+                    how markdown-academic can be used to write mathematical documents with proper theorem environments,
+                    equations, and cross-references.
+                </p>
+                
+                <p>
+                    The development of analysis in the 19th century, particularly through the work of 
+                    Cauchy<a href="#bib-cauchy" class="footnote-ref" aria-describedby="fn1">[1]</a>, 
+                    Weierstrass<a href="#bib-weierstrass" class="footnote-ref" aria-describedby="fn2">[2]</a>, 
+                    and Riemann<a href="#bib-riemann" class="footnote-ref" aria-describedby="fn3">[3]</a>,
+                    established the epsilon-delta formalism that we use today.
+                </p>
+                
+                <p>
+                    The structure of this paper is as follows: <a href="#sec-limits" class="ref-link">Section 2</a> 
+                    covers limits and continuity, <a href="#sec-differentiation" class="ref-link">Section 3</a> 
+                    discusses differentiation, and <a href="#sec-integration" class="ref-link">Section 4</a> 
+                    introduces integration. We conclude in <a href="#sec-conclusion" class="ref-link">Section 5</a>.
+                </p>
+            </section>
+            
+            <!-- Section 2: Limits -->
+            <section id="sec-limits" aria-labelledby="heading-limits">
+                <h2 id="heading-limits"><span class="section-number">2</span> Limits and Continuity</h2>
+                
+                <h3 id="sec-limits-def"><span class="section-number">2.1</span> Definition of Limits</h3>
+                
+                <p>
+                    The concept of a limit is fundamental to all of analysis. We begin with the formal
+                    epsilon-delta definition.
+                </p>
+                
+                <div class="definition" id="def-limit">
+                    <p class="definition-title">Definition 1 (Limit of a Function)</p>
+                    <p>
+                        Let $f: D \to \mathbb{R}$ be a function and let $a$ be a limit point of $D$. We say that
+                        the <em>limit of $f(x)$ as $x$ approaches $a$ equals $L$</em>, written
+                    </p>
+                    <div class="equation-display">
+                        $$\lim_{x \to a} f(x) = L$$
+                    </div>
+                    <p>
+                        if for every $\varepsilon > 0$ there exists a $\delta > 0$ such that for all $x \in D$:
+                    </p>
+                    <div class="equation-display">
+                        $$0 < |x - a| < \delta \implies |f(x) - L| < \varepsilon$$
+                    </div>
+                </div>
+                
+                <div class="example" id="ex-limit">
+                    <p class="example-title">Example 1</p>
+                    <p>
+                        Consider $f(x) = x^2$. We claim that $\lim_{x \to 2} x^2 = 4$.
+                    </p>
+                    <p>
+                        <em>Verification:</em> Given $\varepsilon > 0$, we need $|x^2 - 4| < \varepsilon$ when $|x - 2| < \delta$.
+                        Note that $|x^2 - 4| = |x - 2| \cdot |x + 2|$. If we restrict $|x - 2| < 1$, then $|x + 2| < 5$,
+                        so $|x^2 - 4| < 5|x - 2|$. Choosing $\delta = \min(1, \varepsilon/5)$ works.
+                    </p>
+                </div>
+                
+                <h3 id="sec-continuity"><span class="section-number">2.2</span> Continuity</h3>
+                
+                <p>
+                    Continuity captures the intuitive notion that small changes in input produce small changes in output.
+                </p>
+                
+                <div class="definition" id="def-continuity">
+                    <p class="definition-title">Definition 2 (Continuity)</p>
+                    <p>
+                        A function $f: D \to \mathbb{R}$ is <em>continuous at a point $a \in D$</em> if
+                    </p>
+                    <div class="equation-display">
+                        $$\lim_{x \to a} f(x) = f(a)$$
+                    </div>
+                    <p>
+                        We say $f$ is <em>continuous on $D$</em> if it is continuous at every point in $D$.
+                    </p>
+                </div>
+                
+                <div class="theorem" id="thm-composition">
+                    <p class="theorem-title">Theorem 1 (Composition of Continuous Functions)</p>
+                    <p>
+                        If $f$ is continuous at $a$ and $g$ is continuous at $f(a)$, then $g \circ f$ is continuous at $a$.
+                    </p>
+                </div>
+                
+                <div class="proof">
+                    <p class="proof-title">Proof.</p>
+                    <p>
+                        Let $\varepsilon > 0$ be given. Since $g$ is continuous at $f(a)$, there exists $\eta > 0$ such that
+                        $|y - f(a)| < \eta$ implies $|g(y) - g(f(a))| < \varepsilon$.
+                    </p>
+                    <p>
+                        Since $f$ is continuous at $a$, there exists $\delta > 0$ such that $|x - a| < \delta$ implies $|f(x) - f(a)| < \eta$.
+                    </p>
+                    <p>
+                        Therefore, $|x - a| < \delta$ implies $|g(f(x)) - g(f(a))| < \varepsilon$.
+                    </p>
+                    <p class="qed">$\square$</p>
+                </div>
+            </section>
+            
+            <!-- Section 3: Differentiation -->
+            <section id="sec-differentiation" aria-labelledby="heading-diff">
+                <h2 id="heading-diff"><span class="section-number">3</span> Differentiation</h2>
+                
+                <p>
+                    The derivative measures the instantaneous rate of change of a function. Its formal definition
+                    relies on limits (see <a href="#def-limit" class="ref-link">Definition 1</a>).
+                </p>
+                
+                <div class="definition" id="def-derivative">
+                    <p class="definition-title">Definition 3 (Derivative)</p>
+                    <p>
+                        The <em>derivative</em> of $f$ at $a$, denoted $f'(a)$, is defined as
+                    </p>
+                    <div class="equation-display" id="eq-derivative">
+                        $$f'(a) = \lim_{h \to 0} \frac{f(a + h) - f(a)}{h}$$
+                        <span class="equation-number">(1)</span>
+                    </div>
+                    <p>
+                        provided this limit exists.
+                    </p>
+                </div>
+                
+                <div class="theorem" id="thm-chain-rule">
+                    <p class="theorem-title">Theorem 2 (Chain Rule)</p>
+                    <p>
+                        If $f$ is differentiable at $a$ and $g$ is differentiable at $f(a)$, then $g \circ f$ is 
+                        differentiable at $a$ and
+                    </p>
+                    <div class="equation-display" id="eq-chain-rule">
+                        $$(g \circ f)'(a) = g'(f(a)) \cdot f'(a)$$
+                        <span class="equation-number">(2)</span>
+                    </div>
+                </div>
+                
+                <div class="proof">
+                    <p class="proof-title">Proof.</p>
+                    <p>
+                        Define $\phi(k) = \frac{g(f(a) + k) - g(f(a))}{k} - g'(f(a))$ for $k \neq 0$, and $\phi(0) = 0$.
+                        Then $\phi$ is continuous at $0$ and
+                    </p>
+                    <div class="equation-display">
+                        $$g(f(a) + k) - g(f(a)) = k \cdot [g'(f(a)) + \phi(k)]$$
+                    </div>
+                    <p>
+                        Setting $k = f(a + h) - f(a)$ and dividing by $h$ gives the result.
+                    </p>
+                    <p class="qed">$\square$</p>
+                </div>
+                
+                <div class="remark" id="rem-notation">
+                    <p class="remark-title">Remark 1</p>
+                    <p>
+                        The chain rule can be written in Leibniz notation as
+                        $\frac{dy}{dx} = \frac{dy}{du} \cdot \frac{du}{dx}$,
+                        which suggests (correctly) that derivatives behave like fractions under composition.
+                    </p>
+                </div>
+            </section>
+            
+            <!-- Section 4: Integration -->
+            <section id="sec-integration" aria-labelledby="heading-int">
+                <h2 id="heading-int"><span class="section-number">4</span> Integration</h2>
+                
+                <p>
+                    Integration, in its Riemann form, formalizes the concept of area under a curve.
+                </p>
+                
+                <div class="definition" id="def-riemann">
+                    <p class="definition-title">Definition 4 (Riemann Integral)</p>
+                    <p>
+                        Let $f: [a, b] \to \mathbb{R}$ be bounded. The <em>Riemann integral</em> of $f$ over $[a, b]$ is
+                    </p>
+                    <div class="equation-display" id="eq-riemann">
+                        $$\int_a^b f(x) \, dx = \lim_{\|P\| \to 0} \sum_{i=1}^{n} f(x_i^*) \Delta x_i$$
+                        <span class="equation-number">(3)</span>
+                    </div>
+                    <p>
+                        where $P = \{x_0, x_1, \ldots, x_n\}$ is a partition of $[a, b]$, $\Delta x_i = x_i - x_{i-1}$,
+                        $x_i^* \in [x_{i-1}, x_i]$, and $\|P\| = \max_i \Delta x_i$.
+                    </p>
+                </div>
+                
+                <div class="theorem" id="thm-ftc">
+                    <p class="theorem-title">Theorem 3 (Fundamental Theorem of Calculus)</p>
+                    <p>
+                        Let $f: [a, b] \to \mathbb{R}$ be continuous. Define $F(x) = \int_a^x f(t) \, dt$. Then:
+                    </p>
+                    <ol>
+                        <li>$F$ is differentiable on $(a, b)$ and $F'(x) = f(x)$.</li>
+                        <li>If $G$ is any antiderivative of $f$, then $\int_a^b f(x) \, dx = G(b) - G(a)$.</li>
+                    </ol>
+                </div>
+                
+                <div class="example" id="ex-ftc">
+                    <p class="example-title">Example 2</p>
+                    <p>
+                        Using <a href="#thm-ftc" class="ref-link">Theorem 3</a>, we can compute:
+                    </p>
+                    <div class="equation-display">
+                        $$\int_0^1 x^2 \, dx = \left[\frac{x^3}{3}\right]_0^1 = \frac{1}{3} - 0 = \frac{1}{3}$$
+                    </div>
+                </div>
+                
+                <!-- Data Table -->
+                <figure id="table-integrals">
+                    <table class="data-table">
+                        <caption><strong>Table 1:</strong> Common integrals and their antiderivatives</caption>
+                        <thead>
+                            <tr>
+                                <th>Function $f(x)$</th>
+                                <th>Antiderivative $F(x)$</th>
+                                <th>Domain</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>$x^n$</td>
+                                <td>$\frac{x^{n+1}}{n+1}$</td>
+                                <td>$n \neq -1$</td>
+                            </tr>
+                            <tr>
+                                <td>$\frac{1}{x}$</td>
+                                <td>$\ln|x|$</td>
+                                <td>$x \neq 0$</td>
+                            </tr>
+                            <tr>
+                                <td>$e^x$</td>
+                                <td>$e^x$</td>
+                                <td>$\mathbb{R}$</td>
+                            </tr>
+                            <tr>
+                                <td>$\sin x$</td>
+                                <td>$-\cos x$</td>
+                                <td>$\mathbb{R}$</td>
+                            </tr>
+                            <tr>
+                                <td>$\cos x$</td>
+                                <td>$\sin x$</td>
+                                <td>$\mathbb{R}$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </figure>
+            </section>
+            
+            <!-- Section 5: Conclusion -->
+            <section id="sec-conclusion" aria-labelledby="heading-conclusion">
+                <h2 id="heading-conclusion"><span class="section-number">5</span> Conclusion</h2>
+                
+                <p>
+                    We have presented the foundational concepts of mathematical analysis: limits 
+                    (<a href="#def-limit" class="ref-link">Definition 1</a>), continuity 
+                    (<a href="#def-continuity" class="ref-link">Definition 2</a>), derivatives 
+                    (<a href="#def-derivative" class="ref-link">Definition 3</a>), and integrals 
+                    (<a href="#def-riemann" class="ref-link">Definition 4</a>).
+                </p>
+                
+                <p>
+                    Key results include the composition theorem for continuous functions 
+                    (<a href="#thm-composition" class="ref-link">Theorem 1</a>), the chain rule 
+                    (<a href="#thm-chain-rule" class="ref-link">Theorem 2</a>), and the fundamental 
+                    theorem of calculus (<a href="#thm-ftc" class="ref-link">Theorem 3</a>).
+                </p>
+                
+                <p>
+                    This paper has also demonstrated the capabilities of markdown-academic for 
+                    mathematical writing, including:
+                </p>
+                <ul>
+                    <li>Theorem, definition, and proof environments</li>
+                    <li>Numbered equations with cross-references</li>
+                    <li>Citations and bibliography</li>
+                    <li>Tables with captions</li>
+                    <li>Inline and display mathematics</li>
+                </ul>
+            </section>
+            
+            <!-- Bibliography -->
+            <section class="bibliography" aria-labelledby="heading-bib">
+                <h2 id="heading-bib">References</h2>
+                
+                <p class="bib-entry" id="bib-cauchy">
+                    <span class="bib-key">[1]</span> A. L. Cauchy, <em>Cours d'Analyse de l'École Royale Polytechnique</em>, 
+                    Paris: Imprimerie Royale, 1821.
+                </p>
+                
+                <p class="bib-entry" id="bib-weierstrass">
+                    <span class="bib-key">[2]</span> K. Weierstrass, "Zur Theorie der eindeutigen analytischen Functionen," 
+                    <em>Abhandlungen der Königlich Preussischen Akademie der Wissenschaften zu Berlin</em>, pp. 11–60, 1876.
+                </p>
+                
+                <p class="bib-entry" id="bib-riemann">
+                    <span class="bib-key">[3]</span> B. Riemann, "Über die Darstellbarkeit einer Function durch eine trigonometrische Reihe," 
+                    <em>Abhandlungen der Königlichen Gesellschaft der Wissenschaften zu Göttingen</em>, vol. 13, 1867.
+                </p>
+                
+                <p class="bib-entry" id="bib-rudin">
+                    <span class="bib-key">[4]</span> W. Rudin, <em>Principles of Mathematical Analysis</em>, 3rd ed. 
+                    New York: McGraw-Hill, 1976.
+                </p>
+            </section>
+            
+            <!-- Source Code Toggle -->
+            <details class="source-toggle">
+                <summary>View markdown-academic source for this paper</summary>
+                <pre><code>+++
+title = "On the Foundations of Mathematical Analysis"
+subtitle = "A Tutorial Introduction with Examples"
+authors = ["Joseph R. Quinn"]
+institution = "Department of Mathematics"
+date = "2026-02-03"
+keywords = ["mathematical analysis", "calculus", "limits", "continuity"]
+
+[macros]
+R = "\\mathbb{R}"
+eps = "\\varepsilon"
+delta = "\\delta"
++++
+
+[[toc]]
+
+::: abstract
+This paper serves as both a tutorial introduction to fundamental 
+concepts in mathematical analysis and a demonstration of the 
+**markdown-academic** document format...
+:::
+
+# Introduction {#sec:intro}
+
+Mathematical analysis forms the rigorous foundation of calculus...
+
+The development of analysis in the 19th century, particularly 
+through the work of Cauchy [@cauchy1821], Weierstrass [@weierstrass1876], 
+and Riemann [@riemann1867]...
+
+# Limits and Continuity {#sec:limits}
+
+## Definition of Limits {#sec:limits:def}
+
+::: definition {#def:limit}
+**Definition 1 (Limit of a Function).** Let $f: D \to \R$ be a function...
+
+$$\lim_{x \to a} f(x) = L$$
+
+if for every $\eps > 0$ there exists a $\delta > 0$ such that...
+:::
+
+::: example {#ex:limit}
+Consider $f(x) = x^2$. We claim that $\lim_{x \to 2} x^2 = 4$...
+:::
+
+## Continuity {#sec:continuity}
+
+::: theorem {#thm:composition}
+**Theorem 1 (Composition of Continuous Functions).** If $f$ is 
+continuous at $a$ and $g$ is continuous at $f(a)$, then...
+:::
+
+::: proof
+Let $\eps > 0$ be given. Since $g$ is continuous at $f(a)$...
+$\square$
+:::
+
+# Differentiation {#sec:differentiation}
+
+The derivative measures the instantaneous rate of change of a function. 
+Its formal definition relies on limits (see @def:limit).
+
+::: definition {#def:derivative}
+The *derivative* of $f$ at $a$, denoted $f'(a)$, is defined as
+
+$$f'(a) = \lim_{h \to 0} \frac{f(a + h) - f(a)}{h}$$ {#eq:derivative}
+:::
+
+::: theorem {#thm:chain-rule}
+**Theorem 2 (Chain Rule).** If $f$ is differentiable at $a$ and 
+$g$ is differentiable at $f(a)$, then...
+
+$$(g \circ f)'(a) = g'(f(a)) \cdot f'(a)$$ {#eq:chain-rule}
+:::
+
+# Integration {#sec:integration}
+
+Using @thm:ftc, we can compute...
+
+| Function $f(x)$ | Antiderivative $F(x)$ | Domain     |
+|-----------------|----------------------|------------|
+| $x^n$           | $\frac{x^{n+1}}{n+1}$| $n \neq -1$|
+| $\frac{1}{x}$   | $\ln|x|$             | $x \neq 0$ |
+
+Table: Common integrals {#table:integrals}
+
+# Conclusion {#sec:conclusion}
+
+We have presented the foundational concepts: limits (@def:limit), 
+continuity (@def:continuity), derivatives (@def:derivative)...
+
+## References
+
+[^cauchy1821]: A. L. Cauchy, *Cours d'Analyse*, 1821.
+[^weierstrass1876]: K. Weierstrass, "Zur Theorie...", 1876.
+[^riemann1867]: B. Riemann, "Über die Darstellbarkeit...", 1867.</code></pre>
+            </details>
+        </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>markdown-academic</h3>
+                <p>Academic writing made simple with Markdown.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Documentation</h4>
+                <ul>
+                    <li><a href="syntax.html">Syntax Reference</a></li>
+                    <li><a href="api.html">Rust API</a></li>
+                    <li><a href="ffi.html">FFI & Python</a></li>
+                    <li><a href="example.html">Example Paper</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://github.com/quinnjr/markdown-academic" rel="noopener noreferrer" target="_blank">GitHub Repository</a></li>
+                    <li><a href="https://crates.io/crates/markdown-academic" rel="noopener noreferrer" target="_blank">Crates.io</a></li>
+                    <li><a href="whitepaper.html">Whitepaper</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p>Joseph R. Quinn<br>
+                <a href="mailto:quinn.josephr@protonmail.com">quinn.josephr@protonmail.com</a></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Joseph R. Quinn. MIT License.</p>
+        </div>
+    </footer>
+</body>
+</html>
