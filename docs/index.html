@@ -457,11 +457,12 @@ The equation $E = mc^2$ is famous. See @sec:intro.
                         try {
                             output.innerHTML = render(input.value);
                             // Render math with KaTeX if available
+                            // The Rust renderer outputs \( \) for inline and \[ \] for display math
                             if (typeof renderMathInElement === 'function') {
                                 renderMathInElement(output, {
                                     delimiters: [
-                                        {left: '$$', right: '$$', display: true},
-                                        {left: '$', right: '$', display: false}
+                                        {left: '\\[', right: '\\]', display: true},
+                                        {left: '\\(', right: '\\)', display: false}
                                     ],
                                     throwOnError: false
                                 });
