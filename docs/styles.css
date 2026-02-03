@@ -721,3 +721,148 @@ code, pre {
 .mda-env-content {
     margin-top: 0.5em;
 }
+
+/* ========================================
+   Live Demo Section
+   ======================================== */
+
+.demo-status {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.demo-status.loading {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+}
+
+.demo-status.ready {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #28a745;
+}
+
+.demo-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #dc3545;
+}
+
+.demo-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+@media (max-width: 900px) {
+    .demo-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.demo-editor,
+.demo-preview {
+    display: flex;
+    flex-direction: column;
+}
+
+.demo-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+}
+
+#demo-input {
+    width: 100%;
+    height: 450px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    resize: vertical;
+    tab-size: 2;
+}
+
+#demo-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(139, 35, 50, 0.1);
+}
+
+#demo-output {
+    flex: 1;
+    min-height: 450px;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: white;
+    overflow: auto;
+    line-height: 1.6;
+}
+
+#demo-output h1 {
+    font-size: 1.5rem;
+    margin-top: 0;
+}
+
+#demo-output h2 {
+    font-size: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+#demo-output h3 {
+    font-size: 1.1rem;
+}
+
+#demo-output .mda-theorem,
+#demo-output .mda-definition,
+#demo-output .mda-lemma {
+    background: #f0f7ff;
+    border-left: 4px solid #3b82f6;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+#demo-output .mda-proof {
+    background: var(--surface);
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+#demo-output .mda-ref {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+#demo-output .mda-ref:hover {
+    text-decoration: underline;
+}
+
+#demo-output .mda-section-number {
+    color: var(--muted);
+    margin-right: 0.5rem;
+}
+
+.demo-note {
+    font-size: 0.95rem;
+    color: var(--muted);
+    margin-top: 1.5rem;
+}
+
+.demo-note strong {
+    color: var(--ink);
+}

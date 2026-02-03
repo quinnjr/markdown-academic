@@ -194,8 +194,8 @@
                 Math, citations, cross-references, and more.
             </p>
             <div class="hero-buttons">
-                <a href="syntax.html" class="btn btn-primary">Get Started</a>
-                <a href="example.html" class="btn btn-secondary">View Example Paper</a>
+                <a href="#demo" class="btn btn-primary">Try It Live</a>
+                <a href="syntax.html" class="btn btn-secondary">Get Started</a>
                 <a href="https://github.com/quinnjr/markdown-academic" class="btn btn-secondary" rel="noopener noreferrer" target="_blank">GitHub</a>
             </div>
         </div>
@@ -271,6 +271,66 @@ can be factored into primes.
 See @thm:main and [@knuth1984] for details.</code></pre>
 
                 <p>Documents use the <code>.mda</code> file extension and remain readable as plain text, even without specialized rendering.</p>
+            </section>
+
+            <!-- Live Demo -->
+            <section id="demo" class="section-anchor" aria-labelledby="demo-heading">
+                <h2 id="demo-heading">Try It Live</h2>
+                
+                <p>Edit the markdown below and see it rendered in real-time. This demo runs entirely in your browser using WebAssembly—loaded directly from <a href="https://www.npmjs.com/package/markdown-academic" rel="noopener noreferrer" target="_blank">npm</a> via <a href="https://unpkg.com/markdown-academic" rel="noopener noreferrer" target="_blank">unpkg</a>.</p>
+                
+                <div id="demo-status" class="demo-status loading">Loading markdown-academic from npm...</div>
+                
+                <div class="demo-container">
+                    <div class="demo-editor">
+                        <label for="demo-input" class="demo-label">Input (markdown-academic)</label>
+                        <textarea id="demo-input" spellcheck="false" aria-label="Markdown input">+++
+title = "Live Demo"
+authors = ["You"]
++++
+
+# Introduction {#sec:intro}
+
+Welcome to **markdown-academic**! Try editing this text.
+
+## Math Support {#sec:math}
+
+Inline math like $E = mc^2$ and display math:
+
+$$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$ {#eq:gaussian}
+
+See Equation @eq:gaussian above.
+
+## Environments
+
+::: theorem {#thm:demo}
+Every positive integer is either even or odd.
+:::
+
+::: proof
+Let $n$ be a positive integer. By the division algorithm, $n = 2q + r$ where $r \in \{0, 1\}$.
+:::
+
+## Cross-References
+
+- See @sec:intro for the introduction
+- See @sec:math for math examples
+- See @thm:demo for our theorem</textarea>
+                    </div>
+                    <div class="demo-preview">
+                        <div class="demo-label">Output (rendered HTML)</div>
+                        <div id="demo-output" aria-live="polite"></div>
+                    </div>
+                </div>
+                
+                <p class="demo-note">
+                    <strong>No build step required!</strong> Add markdown-academic to any webpage with a single import:
+                </p>
+                <pre><code>&lt;script type="module"&gt;
+import { init, render } from 'https://unpkg.com/markdown-academic?module';
+await init();
+const html = render('# Hello $E=mc^2$');
+&lt;/script&gt;</code></pre>
             </section>
 
             <!-- Installation -->
@@ -371,5 +431,59 @@ The equation $E = mc^2$ is famous. See @sec:intro.
             </footer>
         </article>
     </main>
+
+    <!-- Live Demo Script -->
+    <script type="module">
+        const status = document.getElementById('demo-status');
+        const input = document.getElementById('demo-input');
+        const output = document.getElementById('demo-output');
+        
+        if (status && input && output) {
+            try {
+                // Load markdown-academic from unpkg (npm CDN)
+                const { init, render, getVersion } = await import('https://unpkg.com/markdown-academic@0.1.0?module');
+                
+                // Initialize the WASM module
+                await init();
+                
+                status.className = 'demo-status ready';
+                status.innerHTML = `✓ Ready! Loaded <strong>markdown-academic v${getVersion()}</strong> from npm via unpkg`;
+                
+                // Render function with debounce
+                let timeout;
+                function updatePreview() {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        try {
+                            output.innerHTML = render(input.value);
+                            // Render math with KaTeX if available
+                            if (typeof renderMathInElement === 'function') {
+                                renderMathInElement(output, {
+                                    delimiters: [
+                                        {left: '$$', right: '$$', display: true},
+                                        {left: '$', right: '$', display: false}
+                                    ],
+                                    throwOnError: false
+                                });
+                            }
+                        } catch (e) {
+                            output.innerHTML = `<div style="color: #c00; background: #fee; padding: 1rem; border-radius: 4px;"><strong>Error:</strong> ${e.message}</div>`;
+                        }
+                    }, 150);
+                }
+                
+                // Listen for input changes
+                input.addEventListener('input', updatePreview);
+                
+                // Initial render
+                updatePreview();
+                
+            } catch (error) {
+                status.className = 'demo-status error';
+                status.innerHTML = `✗ Failed to load: ${error.message}`;
+                console.error('Failed to load markdown-academic:', error);
+            }
+        }
+    </script>
 </body>
 </html>
