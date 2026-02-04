@@ -1764,7 +1764,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.18",
  "toml",
  "wasm-bindgen",
 ]
