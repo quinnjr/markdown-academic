@@ -86,7 +86,7 @@ jobs:
         run: wasm-pack build --target web --out-dir ../wasm/dist/pkg --features wasm
 
       - name: Upload WASM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: wasm-pkg
           path: wasm/dist/pkg/
