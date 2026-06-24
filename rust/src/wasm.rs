@@ -172,16 +172,13 @@ pub fn get_version() -> String {
 /// Check if a feature is supported.
 #[wasm_bindgen(js_name = hasFeature)]
 pub fn has_feature(feature: &str) -> bool {
-    match feature {
-        "math" => true,
-        "citations" => true,
-        "crossref" => true,
-        "environments" => true,
-        "footnotes" => true,
-        "toc" => true,
-        "mathml" => cfg!(feature = "mathml"),
-        _ => false,
+    if matches!(
+        feature,
+        "math" | "citations" | "crossref" | "environments" | "footnotes" | "toc"
+    ) {
+        return true;
     }
+    feature == "mathml" && cfg!(feature = "mathml")
 }
 
 // ============================================================================

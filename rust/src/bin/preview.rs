@@ -290,21 +290,21 @@ impl eframe::App for MdaPreviewApp {
 
         // Top menu bar
         egui::TopBottomPanel::top("menu_bar").show(ctx, |ui| {
-            egui::menu::bar(ui, |ui| {
+            egui::MenuBar::new().ui(ui, |ui| {
                 ui.menu_button("File", |ui| {
                     if ui
                         .add(egui::Button::new("New").shortcut_text("Ctrl+N"))
                         .clicked()
                     {
                         self.new_file();
-                        ui.close_menu();
+                        ui.close();
                     }
                     if ui
                         .add(egui::Button::new("Open...").shortcut_text("Ctrl+O"))
                         .clicked()
                     {
                         self.open_file();
-                        ui.close_menu();
+                        ui.close();
                     }
                     ui.separator();
                     if ui
@@ -312,14 +312,14 @@ impl eframe::App for MdaPreviewApp {
                         .clicked()
                     {
                         self.save_file();
-                        ui.close_menu();
+                        ui.close();
                     }
                     if ui
                         .add(egui::Button::new("Save As...").shortcut_text("Ctrl+Shift+S"))
                         .clicked()
                     {
                         self.save_file_as();
-                        ui.close_menu();
+                        ui.close();
                     }
                     ui.separator();
                     if ui
@@ -327,7 +327,7 @@ impl eframe::App for MdaPreviewApp {
                         .clicked()
                     {
                         self.export_html();
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
 
@@ -338,7 +338,7 @@ impl eframe::App for MdaPreviewApp {
                         .clicked()
                     {
                         self.needs_refresh = true;
-                        ui.close_menu();
+                        ui.close();
                     }
                     ui.separator();
                     ui.checkbox(&mut self.show_html_source, "Show HTML source");
@@ -356,7 +356,7 @@ impl eframe::App for MdaPreviewApp {
                 ui.menu_button("Help", |ui| {
                     if ui.button("About").clicked() {
                         // Could show an about dialog
-                        ui.close_menu();
+                        ui.close();
                     }
                 });
 
@@ -513,11 +513,11 @@ fn render_preview(ui: &mut egui::Ui, html: &str) {
             // Render the code block
             let code = code_buffer.trim();
             if !code.is_empty() {
-                egui::Frame::none()
+                egui::Frame::new()
                     .fill(egui::Color32::from_gray(30))
                     .inner_margin(8.0)
                     .outer_margin(4.0)
-                    .rounding(4.0)
+                    .corner_radius(4.0)
                     .show(ui, |ui| {
                         ui.label(
                             egui::RichText::new(code)
