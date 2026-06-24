@@ -169,7 +169,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install -e .
-          pip install pytest
+          pip install pytest pytest-cov
 
       - name: Run Python tests
         run: pytest tests/ -v
