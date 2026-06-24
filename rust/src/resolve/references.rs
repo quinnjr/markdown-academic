@@ -1,6 +1,6 @@
 //! Cross-reference resolution.
 
-use crate::ast::{Block, Document, EnvironmentKind, FootnoteKind, Inline, LabelInfo};
+use crate::ast::{Block, Document, FootnoteKind, Inline, LabelInfo};
 use crate::error::{ResolutionError, Result};
 use crate::resolve::ResolveConfig;
 use std::collections::HashMap;
@@ -27,48 +27,50 @@ fn collect_block_labels(
     env_numbers: &HashMap<String, u32>,
 ) -> Result<()> {
     match block {
-        Block::Heading { level, label, content, .. } => {
-            if let Some(lbl) = label {
-                let display = if let Some(num) = section_numbers.get(lbl) {
-                    format!("Section {}", num)
-                } else {
-                    // Use heading text
-                    inlines_to_text(content)
-                };
+        Block::Heading {
+            level: _,
+            label: Some(lbl),
+            content,
+            ..
+        } => {
+            let display = if let Some(num) = section_numbers.get(lbl) {
+                format!("Section {}", num)
+            } else {
+                // Use heading text
+                inlines_to_text(content)
+            };
 
-                let html_id = label_to_id(lbl);
+            let html_id = label_to_id(lbl);
 
-                if labels.contains_key(lbl) {
-                    return Err(ResolutionError::DuplicateLabel(lbl.clone()).into());
-                }
-
-                labels.insert(
-                    lbl.clone(),
-                    LabelInfo { display, html_id },
-                );
+            if labels.contains_key(lbl) {
+                return Err(ResolutionError::DuplicateLabel(lbl.clone()).into());
             }
+
+            labels.insert(lbl.clone(), LabelInfo { display, html_id });
         }
-        Block::DisplayMath { label, .. } => {
-            if let Some(lbl) = label {
-                let display = if let Some(num) = env_numbers.get(lbl) {
-                    format!("({})", num)
-                } else {
-                    "(?)".to_string()
-                };
+        Block::DisplayMath {
+            label: Some(lbl), ..
+        } => {
+            let display = if let Some(num) = env_numbers.get(lbl) {
+                format!("({})", num)
+            } else {
+                "(?)".to_string()
+            };
 
-                let html_id = label_to_id(lbl);
+            let html_id = label_to_id(lbl);
 
-                if labels.contains_key(lbl) {
-                    return Err(ResolutionError::DuplicateLabel(lbl.clone()).into());
-                }
-
-                labels.insert(
-                    lbl.clone(),
-                    LabelInfo { display, html_id },
-                );
+            if labels.contains_key(lbl) {
+                return Err(ResolutionError::DuplicateLabel(lbl.clone()).into());
             }
+
+            labels.insert(lbl.clone(), LabelInfo { display, html_id });
         }
-        Block::Environment { kind, label, .. } => {
+        Block::Environment {
+            kind,
+            label,
+            content,
+            ..
+        } => {
             if let Some(lbl) = label {
                 let display = if let Some(num) = env_numbers.get(lbl) {
                     format!("{} {}", kind.display_name(), num)
@@ -82,33 +84,30 @@ fn collect_block_labels(
                     return Err(ResolutionError::DuplicateLabel(lbl.clone()).into());
                 }
 
-                labels.insert(
-                    lbl.clone(),
-                    LabelInfo { display, html_id },
-                );
+                labels.insert(lbl.clone(), LabelInfo { display, html_id });
+            }
+            for block in content {
+                collect_block_labels(block, labels, section_numbers, env_numbers)?;
             }
         }
-        Block::Table { label, .. } => {
-            if let Some(lbl) = label {
-                let display = if let Some(num) = env_numbers.get(lbl) {
-                    format!("Table {}", num)
-                } else {
-                    "Table".to_string()
-                };
+        Block::Table {
+            label: Some(lbl), ..
+        } => {
+            let display = if let Some(num) = env_numbers.get(lbl) {
+                format!("Table {}", num)
+            } else {
+                "Table".to_string()
+            };
 
-                let html_id = label_to_id(lbl);
+            let html_id = label_to_id(lbl);
 
-                if labels.contains_key(lbl) {
-                    return Err(ResolutionError::DuplicateLabel(lbl.clone()).into());
-                }
-
-                labels.insert(
-                    lbl.clone(),
-                    LabelInfo { display, html_id },
-                );
+            if labels.contains_key(lbl) {
+                return Err(ResolutionError::DuplicateLabel(lbl.clone()).into());
             }
+
+            labels.insert(lbl.clone(), LabelInfo { display, html_id });
         }
-        Block::BlockQuote(blocks) | Block::Environment { content: blocks, .. } => {
+        Block::BlockQuote(blocks) => {
             for block in blocks {
                 collect_block_labels(block, labels, section_numbers, env_numbers)?;
             }
@@ -150,7 +149,9 @@ fn collect_block_footnotes(
         Block::Heading { content, .. } => {
             collect_inline_footnotes(content, footnotes, counter)?;
         }
-        Block::Environment { content, caption, .. } => {
+        Block::Environment {
+            content, caption, ..
+        } => {
             for block in content {
                 collect_block_footnotes(block, footnotes, counter)?;
             }
@@ -188,7 +189,9 @@ fn collect_inline_footnotes(
                 footnotes.insert(id, content.clone());
                 *counter += 1;
             }
-            Inline::Emphasis(inlines) | Inline::Strong(inlines) | Inline::Strikethrough(inlines) => {
+            Inline::Emphasis(inlines)
+            | Inline::Strong(inlines)
+            | Inline::Strikethrough(inlines) => {
                 collect_inline_footnotes(inlines, footnotes, counter)?;
             }
             Inline::Link { content, .. } => {
@@ -222,15 +225,24 @@ fn resolve_block_references(
     config: &ResolveConfig,
 ) -> Result<Block> {
     match block {
-        Block::Paragraph(inlines) => {
-            Ok(Block::Paragraph(resolve_inlines_references(inlines, labels, config)?))
-        }
-        Block::Heading { level, content, label } => Ok(Block::Heading {
+        Block::Paragraph(inlines) => Ok(Block::Paragraph(resolve_inlines_references(
+            inlines, labels, config,
+        )?)),
+        Block::Heading {
+            level,
+            content,
+            label,
+        } => Ok(Block::Heading {
             level,
             content: resolve_inlines_references(content, labels, config)?,
             label,
         }),
-        Block::Environment { kind, label, content, caption } => Ok(Block::Environment {
+        Block::Environment {
+            kind,
+            label,
+            content,
+            caption,
+        } => Ok(Block::Environment {
             kind,
             label,
             content: content
@@ -247,7 +259,11 @@ fn resolve_block_references(
                 .map(|b| resolve_block_references(b, labels, config))
                 .collect::<Result<Vec<_>>>()?,
         )),
-        Block::List { ordered, start, items } => Ok(Block::List {
+        Block::List {
+            ordered,
+            start,
+            items,
+        } => Ok(Block::List {
             ordered,
             start,
             items: items
@@ -264,7 +280,13 @@ fn resolve_block_references(
                 })
                 .collect::<Result<Vec<_>>>()?,
         }),
-        Block::Table { headers, alignments, rows, label, caption } => Ok(Block::Table {
+        Block::Table {
+            headers,
+            alignments,
+            rows,
+            label,
+            caption,
+        } => Ok(Block::Table {
             headers: headers
                 .into_iter()
                 .map(|h| resolve_inlines_references(h, labels, config))
@@ -317,16 +339,20 @@ fn resolve_inline_references(
 
             Ok(Inline::Reference { label, resolved })
         }
-        Inline::Emphasis(inlines) => Ok(Inline::Emphasis(
-            resolve_inlines_references(inlines, labels, config)?,
-        )),
-        Inline::Strong(inlines) => Ok(Inline::Strong(
-            resolve_inlines_references(inlines, labels, config)?,
-        )),
-        Inline::Strikethrough(inlines) => Ok(Inline::Strikethrough(
-            resolve_inlines_references(inlines, labels, config)?,
-        )),
-        Inline::Link { url, title, content } => Ok(Inline::Link {
+        Inline::Emphasis(inlines) => Ok(Inline::Emphasis(resolve_inlines_references(
+            inlines, labels, config,
+        )?)),
+        Inline::Strong(inlines) => Ok(Inline::Strong(resolve_inlines_references(
+            inlines, labels, config,
+        )?)),
+        Inline::Strikethrough(inlines) => Ok(Inline::Strikethrough(resolve_inlines_references(
+            inlines, labels, config,
+        )?)),
+        Inline::Link {
+            url,
+            title,
+            content,
+        } => Ok(Inline::Link {
             url,
             title,
             content: resolve_inlines_references(content, labels, config)?,

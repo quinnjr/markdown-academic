@@ -31,27 +31,21 @@ impl MathRenderer for KaTeXRenderer {
         // Escape HTML entities in the LaTeX
         let escaped = escape_html(latex);
 
-        if self.use_mathjax {
-            Ok(format!(r#"<span class="math inline">\({}\)</span>"#, escaped))
-        } else {
-            Ok(format!(r#"<span class="math inline">\({}\)</span>"#, escaped))
-        }
+        // MathJax and KaTeX both consume the same `\(...\)` delimiter syntax.
+        Ok(format!(
+            r#"<span class="math inline">\({}\)</span>"#,
+            escaped
+        ))
     }
 
     fn render_display(&self, latex: &str) -> Result<String> {
         let escaped = escape_html(latex);
 
-        if self.use_mathjax {
-            Ok(format!(
-                r#"<div class="math display">\[{}\]</div>"#,
-                escaped
-            ))
-        } else {
-            Ok(format!(
-                r#"<div class="math display">\[{}\]</div>"#,
-                escaped
-            ))
-        }
+        // MathJax and KaTeX both consume the same `\[...\]` delimiter syntax.
+        Ok(format!(
+            r#"<div class="math display">\[{}\]</div>"#,
+            escaped
+        ))
     }
 
     fn head_content(&self) -> Option<String> {

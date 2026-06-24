@@ -80,10 +80,14 @@ impl<'a> HtmlRenderer<'a> {
             .or_else(|| self.doc.document.metadata.title.clone())
             .unwrap_or_else(|| "Document".to_string());
 
-        self.output.push_str("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n");
+        self.output
+            .push_str("<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n");
         self.output.push_str("<meta charset=\"UTF-8\">\n");
-        self.output.push_str("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n");
-        self.output.push_str(&format!("<title>{}</title>\n", escape_html(&title)));
+        self.output.push_str(
+            "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n",
+        );
+        self.output
+            .push_str(&format!("<title>{}</title>\n", escape_html(&title)));
 
         // Math head content
         if let Some(head) = self.math.head_content() {
@@ -102,7 +106,8 @@ impl<'a> HtmlRenderer<'a> {
         }
 
         self.output.push_str("</head>\n<body>\n");
-        self.output.push_str("<article class=\"mdlatex-document\">\n");
+        self.output
+            .push_str("<article class=\"mdlatex-document\">\n");
 
         self.render_body_content()?;
 
@@ -142,7 +147,11 @@ impl<'a> HtmlRenderer<'a> {
                 self.render_inlines(inlines)?;
                 self.output.push_str("</p>\n");
             }
-            Block::Heading { level, content, label } => {
+            Block::Heading {
+                level,
+                content,
+                label,
+            } => {
                 let tag = format!("h{}", level);
                 let id = label.as_ref().map(|l| label_to_id(l));
 
@@ -172,7 +181,8 @@ impl<'a> HtmlRenderer<'a> {
             Block::CodeBlock { language, content } => {
                 self.output.push_str("<pre><code");
                 if let Some(lang) = language {
-                    self.output.push_str(&format!(r#" class="language-{}""#, lang));
+                    self.output
+                        .push_str(&format!(r#" class="language-{}""#, lang));
                 }
                 self.output.push('>');
                 self.output.push_str(&escape_html(content));
@@ -188,7 +198,11 @@ impl<'a> HtmlRenderer<'a> {
                 }
                 self.output.push_str("</blockquote>\n");
             }
-            Block::List { ordered, start, items } => {
+            Block::List {
+                ordered,
+                start,
+                items,
+            } => {
                 if *ordered {
                     self.output.push_str("<ol");
                     if let Some(start) = start {
@@ -211,7 +225,7 @@ impl<'a> HtmlRenderer<'a> {
                         };
                         self.output.push_str(checkbox);
                     }
-                    for (i, block) in item.content.iter().enumerate() {
+                    for block in item.content.iter() {
                         // Inline single paragraphs in list items
                         if item.content.len() == 1 {
                             if let Block::Paragraph(inlines) = block {
@@ -257,7 +271,12 @@ impl<'a> HtmlRenderer<'a> {
 
                 self.output.push_str("\n</div>\n");
             }
-            Block::Environment { kind, label, content, caption } => {
+            Block::Environment {
+                kind,
+                label,
+                content,
+                caption,
+            } => {
                 self.render_environment(kind, label.as_deref(), content, caption.as_deref())?;
             }
             Block::TableOfContents => {
@@ -265,8 +284,20 @@ impl<'a> HtmlRenderer<'a> {
                     self.render_toc()?;
                 }
             }
-            Block::Table { headers, alignments, rows, label, caption } => {
-                self.render_table(headers, alignments, rows, label.as_deref(), caption.as_deref())?;
+            Block::Table {
+                headers,
+                alignments,
+                rows,
+                label,
+                caption,
+            } => {
+                self.render_table(
+                    headers,
+                    alignments,
+                    rows,
+                    label.as_deref(),
+                    caption.as_deref(),
+                )?;
             }
             Block::RawHtml(html) => {
                 self.output.push_str(html);
@@ -370,7 +401,8 @@ impl<'a> HtmlRenderer<'a> {
                 r#"<span class="{}env-header">"#,
                 self.config.class_prefix
             ));
-            self.output.push_str(&format!("<strong>{}</strong>", kind.display_name()));
+            self.output
+                .push_str(&format!("<strong>{}</strong>", kind.display_name()));
             if let Some(lbl) = label {
                 if let Some(num) = self.doc.env_numbers.get(lbl) {
                     self.output.push_str(&format!(" {}", num));
@@ -399,7 +431,11 @@ impl<'a> HtmlRenderer<'a> {
             self.output.push_str("<figcaption>");
             if let Some(lbl) = label {
                 if let Some(num) = self.doc.env_numbers.get(lbl) {
-                    self.output.push_str(&format!("<strong>{} {}:</strong> ", kind.display_name(), num));
+                    self.output.push_str(&format!(
+                        "<strong>{} {}:</strong> ",
+                        kind.display_name(),
+                        num
+                    ));
                 }
             }
             self.render_inlines(caption)?;
@@ -443,7 +479,8 @@ impl<'a> HtmlRenderer<'a> {
             self.output.push_str("<caption>");
             if let Some(lbl) = label {
                 if let Some(num) = self.doc.env_numbers.get(lbl) {
-                    self.output.push_str(&format!("<strong>Table {}:</strong> ", num));
+                    self.output
+                        .push_str(&format!("<strong>Table {}:</strong> ", num));
                 }
             }
             self.render_inlines(caption)?;
@@ -482,16 +519,19 @@ impl<'a> HtmlRenderer<'a> {
     }
 
     fn render_toc(&mut self) -> Result<()> {
-        self.output.push_str(&format!(
-            r#"<nav class="{}toc">"#,
-            self.config.class_prefix
-        ));
+        self.output
+            .push_str(&format!(r#"<nav class="{}toc">"#, self.config.class_prefix));
         self.output.push_str("<h2>Table of Contents</h2>\n<ul>\n");
 
         let mut current_level = 0u8;
 
         for block in &self.doc.document.blocks {
-            if let Block::Heading { level, content, label } = block {
+            if let Block::Heading {
+                level,
+                content,
+                label,
+            } = block
+            {
                 // Adjust nesting
                 while current_level < *level {
                     self.output.push_str("<ul>\n");
@@ -579,10 +619,16 @@ impl<'a> HtmlRenderer<'a> {
                 self.output.push_str(&escape_html(code));
                 self.output.push_str("</code>");
             }
-            Inline::Link { url, title, content } => {
-                self.output.push_str(&format!(r#"<a href="{}""#, escape_html(url)));
+            Inline::Link {
+                url,
+                title,
+                content,
+            } => {
+                self.output
+                    .push_str(&format!(r#"<a href="{}""#, escape_html(url)));
                 if let Some(title) = title {
-                    self.output.push_str(&format!(r#" title="{}""#, escape_html(title)));
+                    self.output
+                        .push_str(&format!(r#" title="{}""#, escape_html(title)));
                 }
                 self.output.push('>');
                 self.render_inlines(content)?;
@@ -595,9 +641,10 @@ impl<'a> HtmlRenderer<'a> {
                     escape_html(alt)
                 ));
                 if let Some(title) = title {
-                    self.output.push_str(&format!(r#" title="{}""#, escape_html(title)));
+                    self.output
+                        .push_str(&format!(r#" title="{}""#, escape_html(title)));
                 }
-                self.output.push_str(">");
+                self.output.push('>');
             }
             Inline::InlineMath(latex) => {
                 let rendered = self.math.render_inline(latex)?;
@@ -611,7 +658,9 @@ impl<'a> HtmlRenderer<'a> {
                 let text = resolved.as_deref().unwrap_or("??");
                 self.output.push_str(&format!(
                     "<a href=\"#{}\" class=\"{}ref\">{}</a>",
-                    id, self.config.class_prefix, escape_html(text)
+                    id,
+                    self.config.class_prefix,
+                    escape_html(text)
                 ));
             }
             Inline::Footnote(kind) => {
@@ -648,9 +697,14 @@ impl<'a> HtmlRenderer<'a> {
                     let id = format!("bib-{}", key);
                     if let Some(entry) = self.doc.citations.get(key) {
                         let short = format_short_citation(entry);
-                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, escape_html(&short)));
+                        self.output.push_str(&format!(
+                            "<a href=\"#{}\">{}</a>",
+                            id,
+                            escape_html(&short)
+                        ));
                     } else {
-                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+                        self.output
+                            .push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
                     }
                 }
                 if let Some(ref locator) = cite.locator {
@@ -674,7 +728,8 @@ impl<'a> HtmlRenderer<'a> {
                             escape_html(&year)
                         ));
                     } else {
-                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+                        self.output
+                            .push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
                     }
                 }
                 if let Some(ref locator) = cite.locator {
@@ -696,7 +751,8 @@ impl<'a> HtmlRenderer<'a> {
                             escape_html(&author)
                         ));
                     } else {
-                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+                        self.output
+                            .push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
                     }
                 }
             }
@@ -716,7 +772,8 @@ impl<'a> HtmlRenderer<'a> {
                             escape_html(&year)
                         ));
                     } else {
-                        self.output.push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
+                        self.output
+                            .push_str(&format!("<a href=\"#{}\">{}</a>", id, key));
                     }
                 }
                 if let Some(ref locator) = cite.locator {
@@ -731,7 +788,7 @@ impl<'a> HtmlRenderer<'a> {
         Ok(())
     }
 
-    fn render_footnote(&mut self, kind: &FootnoteKind) -> Result<()> {
+    fn render_footnote(&mut self, _kind: &FootnoteKind) -> Result<()> {
         self.footnote_counter += 1;
         let num = self.footnote_counter;
         let id = format!("fn-{}", num);
@@ -766,7 +823,9 @@ impl<'a> HtmlRenderer<'a> {
         match block {
             Block::Paragraph(inlines) => self.render_inline_footnotes(inlines, counter)?,
             Block::Heading { content, .. } => self.render_inline_footnotes(content, counter)?,
-            Block::Environment { content, caption, .. } => {
+            Block::Environment {
+                content, caption, ..
+            } => {
                 for b in content {
                     self.render_block_footnotes(b, counter)?;
                 }
@@ -916,15 +975,19 @@ fn format_short_citation(entry: &BibEntry) -> String {
     if entry.authors.len() > 2 {
         format!("{} et al., {}", author, year)
     } else if entry.authors.len() == 2 {
-        let author2 = entry.authors.get(1).map(|a| {
-            if let Some(comma) = a.find(',') {
-                &a[..comma]
-            } else if let Some(space) = a.rfind(' ') {
-                &a[space + 1..]
-            } else {
-                a.as_str()
-            }
-        }).unwrap_or("");
+        let author2 = entry
+            .authors
+            .get(1)
+            .map(|a| {
+                if let Some(comma) = a.find(',') {
+                    &a[..comma]
+                } else if let Some(space) = a.rfind(' ') {
+                    &a[space + 1..]
+                } else {
+                    a.as_str()
+                }
+            })
+            .unwrap_or("");
         format!("{} & {}, {}", author, author2, year)
     } else {
         format!("{}, {}", author, year)
@@ -934,46 +997,62 @@ fn format_short_citation(entry: &BibEntry) -> String {
 /// Format author and year separately for textual citations.
 fn format_author_year(entry: &BibEntry) -> (String, String) {
     let author = if entry.authors.len() > 2 {
-        let first = entry.authors.first().map(|a| {
-            if let Some(comma) = a.find(',') {
-                &a[..comma]
-            } else if let Some(space) = a.rfind(' ') {
-                &a[space + 1..]
-            } else {
-                a.as_str()
-            }
-        }).unwrap_or("Unknown");
+        let first = entry
+            .authors
+            .first()
+            .map(|a| {
+                if let Some(comma) = a.find(',') {
+                    &a[..comma]
+                } else if let Some(space) = a.rfind(' ') {
+                    &a[space + 1..]
+                } else {
+                    a.as_str()
+                }
+            })
+            .unwrap_or("Unknown");
         format!("{} et al.", first)
     } else if entry.authors.len() == 2 {
-        let first = entry.authors.first().map(|a| {
-            if let Some(comma) = a.find(',') {
-                &a[..comma]
-            } else if let Some(space) = a.rfind(' ') {
-                &a[space + 1..]
-            } else {
-                a.as_str()
-            }
-        }).unwrap_or("Unknown");
-        let second = entry.authors.get(1).map(|a| {
-            if let Some(comma) = a.find(',') {
-                &a[..comma]
-            } else if let Some(space) = a.rfind(' ') {
-                &a[space + 1..]
-            } else {
-                a.as_str()
-            }
-        }).unwrap_or("Unknown");
+        let first = entry
+            .authors
+            .first()
+            .map(|a| {
+                if let Some(comma) = a.find(',') {
+                    &a[..comma]
+                } else if let Some(space) = a.rfind(' ') {
+                    &a[space + 1..]
+                } else {
+                    a.as_str()
+                }
+            })
+            .unwrap_or("Unknown");
+        let second = entry
+            .authors
+            .get(1)
+            .map(|a| {
+                if let Some(comma) = a.find(',') {
+                    &a[..comma]
+                } else if let Some(space) = a.rfind(' ') {
+                    &a[space + 1..]
+                } else {
+                    a.as_str()
+                }
+            })
+            .unwrap_or("Unknown");
         format!("{} & {}", first, second)
     } else {
-        entry.authors.first().map(|a| {
-            if let Some(comma) = a.find(',') {
-                a[..comma].to_string()
-            } else if let Some(space) = a.rfind(' ') {
-                a[space + 1..].to_string()
-            } else {
-                a.to_string()
-            }
-        }).unwrap_or_else(|| "Unknown".to_string())
+        entry
+            .authors
+            .first()
+            .map(|a| {
+                if let Some(comma) = a.find(',') {
+                    a[..comma].to_string()
+                } else if let Some(space) = a.rfind(' ') {
+                    a[space + 1..].to_string()
+                } else {
+                    a.to_string()
+                }
+            })
+            .unwrap_or_else(|| "Unknown".to_string())
     };
 
     let year = entry.year.as_deref().unwrap_or("n.d.").to_string();
@@ -1023,10 +1102,7 @@ fn format_bibliography_entry(entry: &BibEntry) -> String {
 
     // DOI
     if let Some(ref doi) = entry.doi {
-        parts.push(format!(
-            r#"<a href="https://doi.org/{}">{}</a>"#,
-            doi, doi
-        ));
+        parts.push(format!(r#"<a href="https://doi.org/{}">{}</a>"#, doi, doi));
     }
 
     parts.join(". ") + "."

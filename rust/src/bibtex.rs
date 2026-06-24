@@ -1,15 +1,12 @@
 //! BibTeX parser for bibliography support.
 
 use crate::ast::BibEntry;
-use crate::error::{ParseError, Result};
+use crate::error::Result;
 use nom::{
     branch::alt,
-    bytes::complete::{is_not, tag, tag_no_case, take_until, take_while, take_while1},
-    character::complete::{char, multispace0, multispace1, none_of, one_of},
-    combinator::{map, opt, recognize, value},
-    multi::{many0, separated_list0},
-    sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
-    IResult,
+    bytes::complete::take_while1,
+    character::complete::{char, multispace0},
+    IResult, Parser,
 };
 use std::collections::HashMap;
 
@@ -89,7 +86,10 @@ fn parse_entry(input: &str) -> IResult<&str, Option<BibEntry>> {
     let entry_type_lower = entry_type.to_lowercase();
 
     // Handle special entries
-    if entry_type_lower == "comment" || entry_type_lower == "preamble" || entry_type_lower == "string" {
+    if entry_type_lower == "comment"
+        || entry_type_lower == "preamble"
+        || entry_type_lower == "string"
+    {
         // Skip to matching brace
         let (input, _) = skip_braced_content(input)?;
         return Ok((input, None));
@@ -99,7 +99,10 @@ fn parse_entry(input: &str) -> IResult<&str, Option<BibEntry>> {
     let (input, _) = multispace0(input)?;
 
     // Parse citation key
-    let (input, key) = take_while1(|c: char| c.is_alphanumeric() || c == '_' || c == '-' || c == ':' || c == '.')(input)?;
+    let (input, key) =
+        take_while1(|c: char| c.is_alphanumeric() || c == '_' || c == '-' || c == ':' || c == '.')(
+            input,
+        )?;
     let (input, _) = multispace0(input)?;
     let (input, _) = char(',')(input)?;
 
@@ -117,7 +120,6 @@ fn parse_entry(input: &str) -> IResult<&str, Option<BibEntry>> {
 fn skip_braced_content(input: &str) -> IResult<&str, ()> {
     let (input, _) = char('{')(input)?;
     let mut depth = 1;
-    let mut i = 0;
 
     for (idx, c) in input.char_indices() {
         match c {
@@ -130,7 +132,6 @@ fn skip_braced_content(input: &str) -> IResult<&str, ()> {
             }
             _ => {}
         }
-        i = idx;
     }
 
     // Unmatched brace
@@ -177,11 +178,7 @@ fn parse_field(input: &str) -> IResult<&str, (String, String)> {
 }
 
 fn parse_value(input: &str) -> IResult<&str, String> {
-    alt((
-        parse_braced_value,
-        parse_quoted_value,
-        parse_number_value,
-    ))(input)
+    alt((parse_braced_value, parse_quoted_value, parse_number_value)).parse(input)
 }
 
 fn parse_braced_value(input: &str) -> IResult<&str, String> {
@@ -320,8 +317,17 @@ fn build_entry(key: &str, entry_type: &str, fields: HashMap<String, String>) -> 
     for (k, v) in fields {
         if !matches!(
             k.as_str(),
-            "title" | "author" | "year" | "journal" | "booktitle" | "publisher" 
-            | "volume" | "number" | "pages" | "doi" | "url"
+            "title"
+                | "author"
+                | "year"
+                | "journal"
+                | "booktitle"
+                | "publisher"
+                | "volume"
+                | "number"
+                | "pages"
+                | "doi"
+                | "url"
         ) {
             entry.extra.insert(k, v);
         }
@@ -399,6 +405,9 @@ mod tests {
     #[test]
     fn test_clean_bibtex_value() {
         assert_eq!(clean_bibtex_value("{DNA} Sequencing"), "DNA Sequencing");
-        assert_eq!(clean_bibtex_value("The {Art} of Programming"), "The Art of Programming");
+        assert_eq!(
+            clean_bibtex_value("The {Art} of Programming"),
+            "The Art of Programming"
+        );
     }
 }

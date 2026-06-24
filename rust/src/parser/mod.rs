@@ -29,9 +29,9 @@ fn parse_front_matter(input: &str) -> Result<(Metadata, &str)> {
     }
 
     let after_open = &trimmed[3..];
-    let close_pos = after_open
-        .find("\n+++")
-        .ok_or_else(|| ParseError::FrontMatter("Unclosed front matter (missing closing +++)".into()))?;
+    let close_pos = after_open.find("\n+++").ok_or_else(|| {
+        ParseError::FrontMatter("Unclosed front matter (missing closing +++)".into())
+    })?;
 
     let front_matter_str = &after_open[..close_pos];
     let content_start = 3 + close_pos + 4; // "+++" + content + "\n+++"
@@ -81,7 +81,13 @@ fn convert_front_matter(raw: RawFrontMatter) -> Metadata {
         .into_iter()
         .map(|(name, template)| {
             let arg_count = count_macro_args(&template);
-            (name, Macro { arg_count, template })
+            (
+                name,
+                Macro {
+                    arg_count,
+                    template,
+                },
+            )
         })
         .collect();
 

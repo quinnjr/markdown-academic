@@ -248,7 +248,12 @@ See @tab:sample for the table.
         let file_name = self
             .current_file
             .as_ref()
-            .map(|p| p.file_name().unwrap_or_default().to_string_lossy().to_string())
+            .map(|p| {
+                p.file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .to_string()
+            })
             .unwrap_or_else(|| "Untitled".to_string());
 
         let dirty_marker = if self.dirty { " •" } else { "" };
@@ -514,7 +519,11 @@ fn render_preview(ui: &mut egui::Ui, html: &str) {
                     .outer_margin(4.0)
                     .rounding(4.0)
                     .show(ui, |ui| {
-                        ui.label(egui::RichText::new(code).monospace().color(egui::Color32::LIGHT_GRAY));
+                        ui.label(
+                            egui::RichText::new(code)
+                                .monospace()
+                                .color(egui::Color32::LIGHT_GRAY),
+                        );
                     });
             }
             code_buffer.clear();

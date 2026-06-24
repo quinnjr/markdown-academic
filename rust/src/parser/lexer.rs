@@ -1,45 +1,49 @@
 //! Lexer for tokenizing Markdown source.
+//!
+//! Some token variants and helper parsers describe the full token vocabulary
+//! and are not all consumed by the current block parser yet.
+#![allow(dead_code)]
 
 use nom::{
     branch::alt,
-    bytes::complete::{is_not, tag, take, take_until, take_while, take_while1},
-    character::complete::{char, line_ending, multispace0, not_line_ending, space0, space1},
+    bytes::complete::{tag, take_until, take_while1},
+    character::complete::{char, line_ending, not_line_ending, space0, space1},
     combinator::{map, opt, peek, recognize, value},
-    multi::{many0, many1, separated_list1},
-    sequence::{delimited, pair, preceded, terminated, tuple},
-    IResult,
+    multi::many0,
+    sequence::{delimited, pair},
+    IResult, Parser,
 };
 
 /// A token from the lexer.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token<'a> {
     // Block-level tokens
-    Heading(u8, &'a str),           // Level, content
-    FencedCodeStart(&'a str),       // Language
+    Heading(u8, &'a str),     // Level, content
+    FencedCodeStart(&'a str), // Language
     FencedCodeEnd,
     CodeContent(&'a str),
     ThematicBreak,
     BlockQuoteMarker,
     ListItemMarker(ListMarker),
-    EnvironmentStart(&'a str, Option<&'a str>),  // Kind, label
+    EnvironmentStart(&'a str, Option<&'a str>), // Kind, label
     EnvironmentEnd,
     TableOfContents,
     BlankLine,
 
     // Inline tokens
     Text(&'a str),
-    Emphasis(&'a str),              // * or _
-    Strong(&'a str),                // ** or __
+    Emphasis(&'a str), // * or _
+    Strong(&'a str),   // ** or __
     InlineCode(&'a str),
     InlineMath(&'a str),
     DisplayMath(&'a str),
     Citation(Vec<CitationToken<'a>>),
-    Reference(&'a str),             // @label
-    FootnoteInline(&'a str),        // ^[content]
-    FootnoteRef(&'a str),           // [^id]
-    Link(&'a str, &'a str, Option<&'a str>), // text, url, title
+    Reference(&'a str),                       // @label
+    FootnoteInline(&'a str),                  // ^[content]
+    FootnoteRef(&'a str),                     // [^id]
+    Link(&'a str, &'a str, Option<&'a str>),  // text, url, title
     Image(&'a str, &'a str, Option<&'a str>), // alt, url, title
-    Label(&'a str),                 // {#label}
+    Label(&'a str),                           // {#label}
     SoftBreak,
     HardBreak,
     RawHtml(&'a str),
@@ -60,123 +64,136 @@ pub enum ListMarker {
 
 /// Check if a line is blank.
 pub fn is_blank_line(input: &str) -> IResult<&str, ()> {
-    value((), pair(space0, line_ending))(input)
+    value((), pair(space0, line_ending)).parse(input)
 }
 
 /// Parse a heading (ATX style: # Heading).
-pub fn heading(input: &str) -> IResult<&str, Token> {
+pub fn heading(input: &str) -> IResult<&str, Token<'_>> {
     let (input, hashes) = take_while1(|c| c == '#')(input)?;
     let level = hashes.len().min(6) as u8;
     let (input, _) = space1(input)?;
     let (input, content) = not_line_ending(input)?;
     // Trim trailing # and spaces
-    let content = content.trim_end_matches(|c| c == '#' || c == ' ');
+    let content = content.trim_end_matches(['#', ' ']);
     Ok((input, Token::Heading(level, content)))
 }
 
 /// Parse a thematic break (---, ***, ___).
-pub fn thematic_break(input: &str) -> IResult<&str, Token> {
+pub fn thematic_break(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = alt((
-        recognize(tuple((tag("-"), tag("-"), tag("-"), many0(char('-'))))),
-        recognize(tuple((tag("*"), tag("*"), tag("*"), many0(char('*'))))),
-        recognize(tuple((tag("_"), tag("_"), tag("_"), many0(char('_'))))),
-    ))(input)?;
+        recognize((tag("-"), tag("-"), tag("-"), many0(char('-')))),
+        recognize((tag("*"), tag("*"), tag("*"), many0(char('*')))),
+        recognize((tag("_"), tag("_"), tag("_"), many0(char('_')))),
+    ))
+    .parse(input)?;
     let (input, _) = space0(input)?;
     Ok((input, Token::ThematicBreak))
 }
 
 /// Parse a fenced code block start.
-pub fn fenced_code_start(input: &str) -> IResult<&str, Token> {
-    let (input, _) = alt((tag("```"), tag("~~~")))(input)?;
-    let (input, lang) = opt(take_while1(|c: char| c.is_alphanumeric() || c == '-' || c == '_'))(input)?;
+pub fn fenced_code_start(input: &str) -> IResult<&str, Token<'_>> {
+    let (input, _) = alt((tag("```"), tag("~~~"))).parse(input)?;
+    let (input, lang) = opt(take_while1(|c: char| {
+        c.is_alphanumeric() || c == '-' || c == '_'
+    }))
+    .parse(input)?;
     let (input, _) = not_line_ending(input)?;
     Ok((input, Token::FencedCodeStart(lang.unwrap_or(""))))
 }
 
 /// Parse a fenced code block end.
-pub fn fenced_code_end(input: &str) -> IResult<&str, Token> {
-    let (input, _) = alt((tag("```"), tag("~~~")))(input)?;
+pub fn fenced_code_end(input: &str) -> IResult<&str, Token<'_>> {
+    let (input, _) = alt((tag("```"), tag("~~~"))).parse(input)?;
     let (input, _) = space0(input)?;
     Ok((input, Token::FencedCodeEnd))
 }
 
 /// Parse an environment start (:::).
-pub fn environment_start(input: &str) -> IResult<&str, Token> {
+pub fn environment_start(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = tag(":::")(input)?;
     let (input, _) = space0(input)?;
     let (input, kind) = take_while1(|c: char| c.is_alphanumeric() || c == '-' || c == '_')(input)?;
     let (input, _) = space0(input)?;
-    let (input, label) = opt(delimited(tag("{#"), take_while1(|c: char| c != '}'), tag("}")))(input)?;
+    let (input, label) = opt(delimited(
+        tag("{#"),
+        take_while1(|c: char| c != '}'),
+        tag("}"),
+    ))
+    .parse(input)?;
     let (input, _) = not_line_ending(input)?;
     Ok((input, Token::EnvironmentStart(kind, label)))
 }
 
 /// Parse an environment end.
-pub fn environment_end(input: &str) -> IResult<&str, Token> {
+pub fn environment_end(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = tag(":::")(input)?;
     let (input, _) = space0(input)?;
-    let (input, _) = peek(alt((line_ending, recognize(nom::combinator::eof))))(input)?;
+    let (input, _) = peek(alt((line_ending, recognize(nom::combinator::eof)))).parse(input)?;
     Ok((input, Token::EnvironmentEnd))
 }
 
 /// Parse a table of contents marker.
-pub fn table_of_contents(input: &str) -> IResult<&str, Token> {
+pub fn table_of_contents(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = tag("[[toc]]")(input)?;
     Ok((input, Token::TableOfContents))
 }
 
 /// Parse a block quote marker.
-pub fn block_quote_marker(input: &str) -> IResult<&str, Token> {
+pub fn block_quote_marker(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = char('>')(input)?;
-    let (input, _) = opt(char(' '))(input)?;
+    let (input, _) = opt(char(' ')).parse(input)?;
     Ok((input, Token::BlockQuoteMarker))
 }
 
 /// Parse a list item marker.
-pub fn list_item_marker(input: &str) -> IResult<&str, Token> {
+pub fn list_item_marker(input: &str) -> IResult<&str, Token<'_>> {
     alt((
         // Checkbox
         map(
-            tuple((
+            (
                 alt((char('-'), char('*'), char('+'))),
                 space1,
                 char('['),
-                alt((value(true, char('x')), value(true, char('X')), value(false, char(' ')))),
+                alt((
+                    value(true, char('x')),
+                    value(true, char('X')),
+                    value(false, char(' ')),
+                )),
                 char(']'),
                 space0,
-            )),
+            ),
             |(_, _, _, checked, _, _)| Token::ListItemMarker(ListMarker::Checkbox(checked)),
         ),
         // Unordered
-        map(
-            tuple((alt((char('-'), char('*'), char('+'))), space1)),
-            |_| Token::ListItemMarker(ListMarker::Unordered),
-        ),
+        map((alt((char('-'), char('*'), char('+'))), space1), |_| {
+            Token::ListItemMarker(ListMarker::Unordered)
+        }),
         // Ordered
         map(
-            tuple((
+            (
                 take_while1(|c: char| c.is_ascii_digit()),
                 alt((char('.'), char(')'))),
                 space1,
-            )),
+            ),
             |(num, _, _): (&str, _, _)| {
                 Token::ListItemMarker(ListMarker::Ordered(num.parse().unwrap_or(1)))
             },
         ),
-    ))(input)
+    ))
+    .parse(input)
 }
 
 /// Parse inline math ($...$).
-pub fn inline_math(input: &str) -> IResult<&str, Token> {
+pub fn inline_math(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = char('$')(input)?;
-    let (input, _) = peek(nom::combinator::not(char('$')))(input)?;  // Not display math
+    let (input, _) = peek(nom::combinator::not(char('$'))).parse(input)?; // Not display math
     let (input, content) = take_until("$")(input)?;
     let (input, _) = char('$')(input)?;
     Ok((input, Token::InlineMath(content)))
 }
 
 /// Parse display math ($$...$$).
-pub fn display_math(input: &str) -> IResult<&str, Token> {
+pub fn display_math(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = tag("$$")(input)?;
     let (input, content) = take_until("$$")(input)?;
     let (input, _) = tag("$$")(input)?;
@@ -184,7 +201,7 @@ pub fn display_math(input: &str) -> IResult<&str, Token> {
 }
 
 /// Parse a citation ([@key] or [@key, p. 42]).
-pub fn citation(input: &str) -> IResult<&str, Token> {
+pub fn citation(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = tag("[@")(input)?;
     let (input, content) = take_until("]")(input)?;
     let (input, _) = char(']')(input)?;
@@ -212,16 +229,17 @@ pub fn citation(input: &str) -> IResult<&str, Token> {
 }
 
 /// Parse a cross-reference (@label).
-pub fn reference(input: &str) -> IResult<&str, Token> {
+pub fn reference(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = char('@')(input)?;
     // Ensure it's not a citation
-    let (input, _) = peek(nom::combinator::not(char('[')))(input)?;
-    let (input, label) = take_while1(|c: char| c.is_alphanumeric() || c == ':' || c == '-' || c == '_')(input)?;
+    let (input, _) = peek(nom::combinator::not(char('['))).parse(input)?;
+    let (input, label) =
+        take_while1(|c: char| c.is_alphanumeric() || c == ':' || c == '-' || c == '_')(input)?;
     Ok((input, Token::Reference(label)))
 }
 
 /// Parse an inline footnote (^[content]).
-pub fn footnote_inline(input: &str) -> IResult<&str, Token> {
+pub fn footnote_inline(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = tag("^[")(input)?;
     let (input, content) = take_until("]")(input)?;
     let (input, _) = char(']')(input)?;
@@ -229,7 +247,7 @@ pub fn footnote_inline(input: &str) -> IResult<&str, Token> {
 }
 
 /// Parse a footnote reference ([^id]).
-pub fn footnote_ref(input: &str) -> IResult<&str, Token> {
+pub fn footnote_ref(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = tag("[^")(input)?;
     let (input, id) = take_while1(|c: char| c.is_alphanumeric() || c == '-' || c == '_')(input)?;
     let (input, _) = char(']')(input)?;
@@ -237,7 +255,7 @@ pub fn footnote_ref(input: &str) -> IResult<&str, Token> {
 }
 
 /// Parse a label ({#label}).
-pub fn label(input: &str) -> IResult<&str, Token> {
+pub fn label(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = tag("{#")(input)?;
     let (input, id) = take_while1(|c: char| c != '}')(input)?;
     let (input, _) = char('}')(input)?;
@@ -245,44 +263,38 @@ pub fn label(input: &str) -> IResult<&str, Token> {
 }
 
 /// Parse inline code (`code`).
-pub fn inline_code(input: &str) -> IResult<&str, Token> {
+pub fn inline_code(input: &str) -> IResult<&str, Token<'_>> {
     let (input, _) = char('`')(input)?;
-    let (input, _) = peek(nom::combinator::not(char('`')))(input)?;  // Not fenced code
+    let (input, _) = peek(nom::combinator::not(char('`'))).parse(input)?; // Not fenced code
     let (input, content) = take_until("`")(input)?;
     let (input, _) = char('`')(input)?;
     Ok((input, Token::InlineCode(content)))
 }
 
 /// Parse emphasis (*text* or _text_).
-pub fn emphasis(input: &str) -> IResult<&str, Token> {
+pub fn emphasis(input: &str) -> IResult<&str, Token<'_>> {
     alt((
         delimited(
             pair(char('*'), peek(nom::combinator::not(char('*')))),
-            map(take_until("*"), |s| Token::Emphasis(s)),
+            map(take_until("*"), Token::Emphasis),
             char('*'),
         ),
         delimited(
             pair(char('_'), peek(nom::combinator::not(char('_')))),
-            map(take_until("_"), |s| Token::Emphasis(s)),
+            map(take_until("_"), Token::Emphasis),
             char('_'),
         ),
-    ))(input)
+    ))
+    .parse(input)
 }
 
 /// Parse strong (**text** or __text__).
-pub fn strong(input: &str) -> IResult<&str, Token> {
+pub fn strong(input: &str) -> IResult<&str, Token<'_>> {
     alt((
-        delimited(
-            tag("**"),
-            map(take_until("**"), |s| Token::Strong(s)),
-            tag("**"),
-        ),
-        delimited(
-            tag("__"),
-            map(take_until("__"), |s| Token::Strong(s)),
-            tag("__"),
-        ),
-    ))(input)
+        delimited(tag("**"), map(take_until("**"), Token::Strong), tag("**")),
+        delimited(tag("__"), map(take_until("__"), Token::Strong), tag("__")),
+    ))
+    .parse(input)
 }
 
 #[cfg(test)]

@@ -10,7 +10,7 @@ pub use macros::expand_macros;
 pub use numbering::assign_numbers;
 pub use references::resolve_references;
 
-use crate::ast::{BibEntry, Document, LabelInfo, ResolvedDocument};
+use crate::ast::{BibEntry, Document, ResolvedDocument};
 use crate::bibtex::parse_bibtex;
 use crate::error::{ResolutionError, Result};
 use std::collections::HashMap;

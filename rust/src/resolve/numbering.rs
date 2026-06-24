@@ -63,8 +63,8 @@ fn assign_block_numbers(
             section_counters[idx] += 1;
 
             // Reset lower level counters
-            for i in (idx + 1)..6 {
-                section_counters[i] = 0;
+            for counter in section_counters.iter_mut().take(6).skip(idx + 1) {
+                *counter = 0;
             }
 
             if let Some(lbl) = label {
@@ -79,7 +79,12 @@ fn assign_block_numbers(
                 env_numbers.insert(lbl.clone(), *equation_counter);
             }
         }
-        Block::Environment { kind, label, content, .. } => {
+        Block::Environment {
+            kind,
+            label,
+            content,
+            ..
+        } => {
             let counter = match kind {
                 EnvironmentKind::Theorem
                 | EnvironmentKind::Proposition
@@ -222,10 +227,22 @@ mod tests {
         let doc = parse(input).unwrap();
         let (section_numbers, _) = assign_numbers(&doc);
 
-        assert_eq!(section_numbers.get("sec:first").map(String::as_str), Some("1"));
-        assert_eq!(section_numbers.get("sec:sub1").map(String::as_str), Some("1.1"));
-        assert_eq!(section_numbers.get("sec:sub2").map(String::as_str), Some("1.2"));
-        assert_eq!(section_numbers.get("sec:second").map(String::as_str), Some("2"));
+        assert_eq!(
+            section_numbers.get("sec:first").map(String::as_str),
+            Some("1")
+        );
+        assert_eq!(
+            section_numbers.get("sec:sub1").map(String::as_str),
+            Some("1.1")
+        );
+        assert_eq!(
+            section_numbers.get("sec:sub2").map(String::as_str),
+            Some("1.2")
+        );
+        assert_eq!(
+            section_numbers.get("sec:second").map(String::as_str),
+            Some("2")
+        );
     }
 
     #[test]

@@ -24,10 +24,12 @@ pub fn expand_macros(mut document: Document) -> Result<Document> {
 
 fn expand_block_macros(block: Block, macros: &HashMap<String, Macro>) -> Block {
     match block {
-        Block::Paragraph(inlines) => {
-            Block::Paragraph(expand_inlines_macros(inlines, macros))
-        }
-        Block::Heading { level, content, label } => Block::Heading {
+        Block::Paragraph(inlines) => Block::Paragraph(expand_inlines_macros(inlines, macros)),
+        Block::Heading {
+            level,
+            content,
+            label,
+        } => Block::Heading {
             level,
             content: expand_inlines_macros(content, macros),
             label,
@@ -36,30 +38,65 @@ fn expand_block_macros(block: Block, macros: &HashMap<String, Macro>) -> Block {
             content: expand_math_macros(&content, macros),
             label,
         },
-        Block::Environment { kind, label, content, caption } => Block::Environment {
+        Block::Environment {
             kind,
             label,
-            content: content.into_iter().map(|b| expand_block_macros(b, macros)).collect(),
+            content,
+            caption,
+        } => Block::Environment {
+            kind,
+            label,
+            content: content
+                .into_iter()
+                .map(|b| expand_block_macros(b, macros))
+                .collect(),
             caption: caption.map(|c| expand_inlines_macros(c, macros)),
         },
-        Block::BlockQuote(blocks) => {
-            Block::BlockQuote(blocks.into_iter().map(|b| expand_block_macros(b, macros)).collect())
-        }
-        Block::List { ordered, start, items } => Block::List {
+        Block::BlockQuote(blocks) => Block::BlockQuote(
+            blocks
+                .into_iter()
+                .map(|b| expand_block_macros(b, macros))
+                .collect(),
+        ),
+        Block::List {
+            ordered,
+            start,
+            items,
+        } => Block::List {
             ordered,
             start,
             items: items
                 .into_iter()
                 .map(|item| crate::ast::ListItem {
-                    content: item.content.into_iter().map(|b| expand_block_macros(b, macros)).collect(),
+                    content: item
+                        .content
+                        .into_iter()
+                        .map(|b| expand_block_macros(b, macros))
+                        .collect(),
                     checked: item.checked,
                 })
                 .collect(),
         },
-        Block::Table { headers, alignments, rows, label, caption } => Block::Table {
-            headers: headers.into_iter().map(|h| expand_inlines_macros(h, macros)).collect(),
+        Block::Table {
+            headers,
             alignments,
-            rows: rows.into_iter().map(|row| row.into_iter().map(|cell| expand_inlines_macros(cell, macros)).collect()).collect(),
+            rows,
+            label,
+            caption,
+        } => Block::Table {
+            headers: headers
+                .into_iter()
+                .map(|h| expand_inlines_macros(h, macros))
+                .collect(),
+            alignments,
+            rows: rows
+                .into_iter()
+                .map(|row| {
+                    row.into_iter()
+                        .map(|cell| expand_inlines_macros(cell, macros))
+                        .collect()
+                })
+                .collect(),
             label,
             caption: caption.map(|c| expand_inlines_macros(c, macros)),
         },
@@ -77,19 +114,17 @@ fn expand_inlines_macros(inlines: Vec<Inline>, macros: &HashMap<String, Macro>) 
 
 fn expand_inline_macros(inline: Inline, macros: &HashMap<String, Macro>) -> Inline {
     match inline {
-        Inline::InlineMath(content) => {
-            Inline::InlineMath(expand_math_macros(&content, macros))
-        }
-        Inline::Emphasis(inlines) => {
-            Inline::Emphasis(expand_inlines_macros(inlines, macros))
-        }
-        Inline::Strong(inlines) => {
-            Inline::Strong(expand_inlines_macros(inlines, macros))
-        }
+        Inline::InlineMath(content) => Inline::InlineMath(expand_math_macros(&content, macros)),
+        Inline::Emphasis(inlines) => Inline::Emphasis(expand_inlines_macros(inlines, macros)),
+        Inline::Strong(inlines) => Inline::Strong(expand_inlines_macros(inlines, macros)),
         Inline::Strikethrough(inlines) => {
             Inline::Strikethrough(expand_inlines_macros(inlines, macros))
         }
-        Inline::Link { url, title, content } => Inline::Link {
+        Inline::Link {
+            url,
+            title,
+            content,
+        } => Inline::Link {
             url,
             title,
             content: expand_inlines_macros(content, macros),

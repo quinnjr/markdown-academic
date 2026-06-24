@@ -4,7 +4,7 @@ use crate::ast::{Citation, CitationStyle, FootnoteKind, Inline};
 use crate::error::Result;
 use crate::parser::lexer::{
     citation, display_math, emphasis, footnote_inline, footnote_ref, inline_code, inline_math,
-    label, reference, strong, CitationToken, Token,
+    label, reference, strong, Token,
 };
 
 /// Parse inline content from a string.
@@ -95,10 +95,10 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
     }
 
     // Strikethrough (~~...~~)
-    if input.starts_with("~~") {
-        if let Some(end) = input[2..].find("~~") {
-            let content = &input[2..2 + end];
-            let rest = &input[2 + end + 2..];
+    if let Some(after) = input.strip_prefix("~~") {
+        if let Some(end) = after.find("~~") {
+            let content = &after[..end];
+            let rest = &after[end + 2..];
             let inner = parse_inlines(content)?;
             return Ok(Some((Inline::Strikethrough(inner), rest)));
         }
@@ -112,10 +112,10 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
     }
 
     // Year-only citation ([-@key])
-    if input.starts_with("[-@") {
-        if let Some(end) = input[3..].find(']') {
-            let key = &input[3..3 + end];
-            let rest = &input[3 + end + 1..];
+    if let Some(after) = input.strip_prefix("[-@") {
+        if let Some(end) = after.find(']') {
+            let key = &after[..end];
+            let rest = &after[end + 1..];
             // Parse optional locator
             let (key, locator) = if let Some(comma) = key.find(',') {
                 (&key[..comma], Some(key[comma + 1..].trim().to_string()))
@@ -171,10 +171,10 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
     }
 
     // Small caps ([sc]...[/sc])
-    if input.starts_with("[sc]") {
-        if let Some(end) = input[4..].find("[/sc]") {
-            let content = &input[4..4 + end];
-            let rest = &input[4 + end + 5..];
+    if let Some(after) = input.strip_prefix("[sc]") {
+        if let Some(end) = after.find("[/sc]") {
+            let content = &after[..end];
+            let rest = &after[end + 5..];
             let inner = parse_inlines(content)?;
             return Ok(Some((Inline::SmallCaps(inner), rest)));
         }
@@ -184,10 +184,7 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
     if input.starts_with("^[") {
         if let Ok((rest, Token::FootnoteInline(content))) = footnote_inline(input) {
             let inner = parse_inlines(content)?;
-            return Ok(Some((
-                Inline::Footnote(FootnoteKind::Inline(inner)),
-                rest,
-            )));
+            return Ok(Some((Inline::Footnote(FootnoteKind::Inline(inner)), rest)));
         }
     }
 
@@ -206,7 +203,7 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
     if input.starts_with('@') && !input.starts_with("[@") && !input.starts_with("[-@") {
         if let Ok((rest, Token::Reference(lbl))) = reference(input) {
             let label_str = lbl.to_string();
-            
+
             // Check if this ends with a hyphen (author-only citation: @author-)
             if label_str.ends_with('-') {
                 let key = &label_str[..label_str.len() - 1];
@@ -218,7 +215,7 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
                 };
                 return Ok(Some((Inline::Citation(cite), rest)));
             }
-            
+
             // First try as cross-reference (sec:, fig:, thm:, eq:, tab:, etc.)
             // These prefixes indicate a reference, not a citation
             let is_reference = label_str.starts_with("sec:")
@@ -234,7 +231,7 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
                 || label_str.starts_with("ex:")
                 || label_str.starts_with("rem:")
                 || label_str.starts_with("app:");
-            
+
             if is_reference {
                 return Ok(Some((
                     Inline::Reference {
@@ -244,7 +241,7 @@ fn try_parse_inline(input: &str) -> Result<Option<(Inline, &str)>> {
                     rest,
                 )));
             }
-            
+
             // Otherwise, treat as textual citation
             let cite = Citation {
                 keys: vec![label_str],
@@ -609,14 +606,20 @@ mod tests {
     #[test]
     fn test_inline_math() {
         let inlines = parse_inlines("The equation $E = mc^2$ is famous.").unwrap();
-        let math_count = inlines.iter().filter(|i| matches!(i, Inline::InlineMath(_))).count();
+        let math_count = inlines
+            .iter()
+            .filter(|i| matches!(i, Inline::InlineMath(_)))
+            .count();
         assert_eq!(math_count, 1);
     }
 
     #[test]
     fn test_citation() {
         let inlines = parse_inlines("As shown in [@knuth1984].").unwrap();
-        let cite_count = inlines.iter().filter(|i| matches!(i, Inline::Citation(_))).count();
+        let cite_count = inlines
+            .iter()
+            .filter(|i| matches!(i, Inline::Citation(_)))
+            .count();
         assert_eq!(cite_count, 1);
     }
 
@@ -644,7 +647,10 @@ mod tests {
     #[test]
     fn test_footnote_inline() {
         let inlines = parse_inlines("Some text^[This is a note].").unwrap();
-        let fn_count = inlines.iter().filter(|i| matches!(i, Inline::Footnote(_))).count();
+        let fn_count = inlines
+            .iter()
+            .filter(|i| matches!(i, Inline::Footnote(_)))
+            .count();
         assert_eq!(fn_count, 1);
     }
 }

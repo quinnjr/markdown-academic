@@ -1,6 +1,5 @@
 //! C FFI layer for cross-language interoperability.
 
-use crate::error::Error;
 use crate::parser::parse;
 use crate::render::{render_html, HtmlConfig, MathBackend};
 use crate::resolve::{resolve, ResolveConfig};
@@ -53,7 +52,8 @@ impl MdAcademicResult {
     }
 
     fn err(error: String) -> Self {
-        let c_string = CString::new(error).unwrap_or_else(|_| CString::new("Unknown error").unwrap());
+        let c_string =
+            CString::new(error).unwrap_or_else(|_| CString::new("Unknown error").unwrap());
         Self {
             data: ptr::null_mut(),
             error: c_string.into_raw(),
@@ -346,9 +346,7 @@ pub unsafe extern "C" fn mdacademic_render_pdf(
         return MdAcademicPdfResult {
             data: ptr::null_mut(),
             len: 0,
-            error: CString::new("Null input pointer")
-                .unwrap()
-                .into_raw(),
+            error: CString::new("Null input pointer").unwrap().into_raw(),
         };
     }
 
@@ -358,9 +356,7 @@ pub unsafe extern "C" fn mdacademic_render_pdf(
             return MdAcademicPdfResult {
                 data: ptr::null_mut(),
                 len: 0,
-                error: CString::new("Invalid UTF-8 input")
-                    .unwrap()
-                    .into_raw(),
+                error: CString::new("Invalid UTF-8 input").unwrap().into_raw(),
             }
         }
     };

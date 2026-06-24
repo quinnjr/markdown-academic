@@ -4,15 +4,13 @@ use crate::ast::{Alignment, Block, DescriptionItem, EnvironmentKind, ListItem};
 use crate::error::Result;
 use crate::parser::inline::parse_inlines;
 use crate::parser::lexer::{
-    block_quote_marker, environment_end, environment_start, fenced_code_end, fenced_code_start,
-    heading, is_blank_line, list_item_marker, table_of_contents, thematic_break, ListMarker, Token,
+    environment_start, fenced_code_start, heading, list_item_marker, thematic_break, ListMarker,
+    Token,
 };
-use nom::combinator::opt;
-
 /// Parse all blocks from content.
 pub fn parse_blocks(input: &str) -> Result<Vec<Block>> {
     let mut blocks = Vec::new();
-    let mut lines: Vec<&str> = input.lines().collect();
+    let lines: Vec<&str> = input.lines().collect();
     let mut i = 0;
 
     while i < lines.len() {
@@ -81,7 +79,7 @@ fn try_parse_heading(line: &str) -> Result<Option<(Block, usize)>> {
     }
 
     match heading(line.trim_start()) {
-        Ok((rest, Token::Heading(level, content))) => {
+        Ok((_rest, Token::Heading(level, content))) => {
             // Check for label at end
             let (content, label) = extract_label(content);
             let inlines = parse_inlines(content)?;
@@ -118,14 +116,18 @@ fn try_parse_toc(line: &str) -> Result<Option<(Block, usize)>> {
 
 fn try_parse_fenced_code(lines: &[&str]) -> Result<Option<(Block, usize)>> {
     let first = lines[0].trim_start();
-    
+
     if !first.starts_with("```") && !first.starts_with("~~~") {
         return Ok(None);
     }
 
-    let fence_char = first.chars().next().unwrap();
-    let fence = if first.starts_with("```") { "```" } else { "~~~" };
-    
+    let _fence_char = first.chars().next().unwrap();
+    let fence = if first.starts_with("```") {
+        "```"
+    } else {
+        "~~~"
+    };
+
     match fenced_code_start(first) {
         Ok((_, Token::FencedCodeStart(lang))) => {
             let mut content = String::new();
@@ -136,7 +138,11 @@ fn try_parse_fenced_code(lines: &[&str]) -> Result<Option<(Block, usize)>> {
                 if line.trim_start().starts_with(fence) {
                     return Ok(Some((
                         Block::CodeBlock {
-                            language: if lang.is_empty() { None } else { Some(lang.to_string()) },
+                            language: if lang.is_empty() {
+                                None
+                            } else {
+                                Some(lang.to_string())
+                            },
                             content,
                         },
                         i + 1,
@@ -152,7 +158,11 @@ fn try_parse_fenced_code(lines: &[&str]) -> Result<Option<(Block, usize)>> {
             // Unclosed fence - treat rest as code
             Ok(Some((
                 Block::CodeBlock {
-                    language: if lang.is_empty() { None } else { Some(lang.to_string()) },
+                    language: if lang.is_empty() {
+                        None
+                    } else {
+                        Some(lang.to_string())
+                    },
                     content,
                 },
                 lines.len(),
@@ -164,7 +174,7 @@ fn try_parse_fenced_code(lines: &[&str]) -> Result<Option<(Block, usize)>> {
 
 fn try_parse_display_math(lines: &[&str]) -> Result<Option<(Block, usize)>> {
     let first = lines[0].trim_start();
-    
+
     if !first.starts_with("$$") {
         return Ok(None);
     }
@@ -175,10 +185,7 @@ fn try_parse_display_math(lines: &[&str]) -> Result<Option<(Block, usize)>> {
         let content = after_open[..end_pos].to_string();
         let rest = &after_open[end_pos + 2..];
         let label = extract_label(rest).1;
-        return Ok(Some((
-            Block::DisplayMath { content, label },
-            1,
-        )));
+        return Ok(Some((Block::DisplayMath { content, label }, 1)));
     }
 
     // Multi-line display math
@@ -217,7 +224,7 @@ fn try_parse_display_math(lines: &[&str]) -> Result<Option<(Block, usize)>> {
 
 fn try_parse_environment(lines: &[&str]) -> Result<Option<(Block, usize)>> {
     let first = lines[0].trim_start();
-    
+
     if !first.starts_with(":::") {
         return Ok(None);
     }
@@ -238,7 +245,8 @@ fn try_parse_environment(lines: &[&str]) -> Result<Option<(Block, usize)>> {
                     depth -= 1;
                     if depth == 0 {
                         let inner_content = inner_lines.join("\n");
-                        let (content, caption) = parse_environment_content(&inner_content, &env_kind)?;
+                        let (content, caption) =
+                            parse_environment_content(&inner_content, &env_kind)?;
                         return Ok(Some((
                             Block::Environment {
                                 kind: env_kind,
@@ -280,7 +288,7 @@ fn parse_environment_content(
 ) -> Result<(Vec<Block>, Option<Vec<crate::ast::Inline>>)> {
     // For figures/tables, look for a caption at the end
     let blocks = parse_blocks(content)?;
-    
+
     if matches!(kind, EnvironmentKind::Figure | EnvironmentKind::Table) {
         // Check if last block is a paragraph that looks like a caption
         if let Some(Block::Paragraph(inlines)) = blocks.last() {
@@ -297,7 +305,7 @@ fn parse_environment_content(
 
 fn try_parse_block_quote(lines: &[&str]) -> Result<Option<(Block, usize)>> {
     let first = lines[0].trim_start();
-    
+
     if !first.starts_with('>') {
         return Ok(None);
     }
@@ -309,16 +317,15 @@ fn try_parse_block_quote(lines: &[&str]) -> Result<Option<(Block, usize)>> {
         let line = lines[i];
         let trimmed = line.trim_start();
 
-        if trimmed.starts_with('>') {
-            // Remove the > prefix
-            let content = if trimmed.len() > 1 && trimmed.chars().nth(1) == Some(' ') {
-                &trimmed[2..]
-            } else {
-                &trimmed[1..]
-            };
+        if let Some(stripped) = trimmed.strip_prefix('>') {
+            // Remove the > prefix (and an optional following space)
+            let content = stripped.strip_prefix(' ').unwrap_or(stripped);
             quote_lines.push(content);
             i += 1;
-        } else if trimmed.is_empty() && i + 1 < lines.len() && lines[i + 1].trim_start().starts_with('>') {
+        } else if trimmed.is_empty()
+            && i + 1 < lines.len()
+            && lines[i + 1].trim_start().starts_with('>')
+        {
             // Blank line within quote
             quote_lines.push("");
             i += 1;
@@ -343,7 +350,7 @@ fn try_parse_list(lines: &[&str]) -> Result<Option<(Block, usize)>> {
         return Ok(None);
     }
 
-    let (rest, marker) = marker_result.unwrap();
+    let (_rest, marker) = marker_result.unwrap();
     let Token::ListItemMarker(marker_type) = marker else {
         return Ok(None);
     };
@@ -518,14 +525,14 @@ fn is_table_delimiter(line: &str) -> bool {
 
     // Remove leading/trailing pipes
     let inner = trimmed.trim_matches('|');
-    
+
     // Check each cell is a valid delimiter
     for cell in inner.split('|') {
         let cell = cell.trim();
         if cell.is_empty() {
             continue;
         }
-        
+
         let valid = cell.chars().all(|c| c == '-' || c == ':');
         if !valid || cell.chars().filter(|&c| c == '-').count() < 1 {
             return false;
@@ -671,9 +678,9 @@ fn try_parse_description_list(lines: &[&str]) -> Result<Option<(Block, usize)>> 
         let mut def_lines = Vec::new();
         while i < lines.len() {
             let line = lines[i].trim();
-            if line.starts_with(':') {
+            if let Some(stripped) = line.strip_prefix(':') {
                 // Remove the ':' prefix
-                let content = line[1..].trim();
+                let content = stripped.trim();
                 def_lines.push(content);
                 i += 1;
             } else if line.is_empty() {
@@ -727,10 +734,7 @@ fn try_parse_page_break(line: &str) -> Result<Option<(Block, usize)>> {
 fn try_parse_appendix_marker(line: &str) -> Result<Option<(Block, usize)>> {
     let trimmed = line.trim();
 
-    if trimmed == "\\appendix"
-        || trimmed == "---appendix---"
-        || trimmed == "<!-- appendix -->"
-    {
+    if trimmed == "\\appendix" || trimmed == "---appendix---" || trimmed == "<!-- appendix -->" {
         return Ok(Some((Block::AppendixMarker, 1)));
     }
 

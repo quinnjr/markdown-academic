@@ -5,10 +5,10 @@
 
 #![cfg(feature = "pdf")]
 
-use crate::ast::{Block, CitationStyle, DescriptionItem, EnvironmentKind, FootnoteKind, Inline, ResolvedDocument};
+use crate::ast::{Block, CitationStyle, EnvironmentKind, FootnoteKind, Inline, ResolvedDocument};
 use crate::error::{RenderError, Result};
 use genpdf::elements::{Break, Paragraph};
-use genpdf::{Document, Element, SimplePageDecorator};
+use genpdf::{Document, SimplePageDecorator};
 use std::path::Path;
 
 /// Configuration for PDF rendering.
@@ -79,7 +79,7 @@ pub struct PageMargins {
 impl Default for PageMargins {
     fn default() -> Self {
         Self {
-            top: 25.4,    // 1 inch
+            top: 25.4, // 1 inch
             bottom: 25.4,
             left: 25.4,
             right: 25.4,
@@ -123,40 +123,36 @@ impl<'a> PdfRenderer<'a> {
 
     fn render(mut self) -> Result<Vec<u8>> {
         // Try to load fonts from various locations
-        let font_family = genpdf::fonts::from_files(
-            "/usr/share/fonts/liberation",
-            "LiberationSerif",
-            None,
-        )
-        .or_else(|_| {
-            genpdf::fonts::from_files(
-                "/usr/share/fonts/truetype/liberation",
-                "LiberationSerif",
-                None,
-            )
-        })
-        .or_else(|_| {
-            genpdf::fonts::from_files(
-                "/usr/share/fonts/TTF",
-                "LiberationSerif", 
-                None,
-            )
-        })
-        .map_err(|e| RenderError::Template(format!(
-            "Could not load fonts. Please install Liberation fonts. Error: {}", e
-        )))?;
+        let font_family =
+            genpdf::fonts::from_files("/usr/share/fonts/liberation", "LiberationSerif", None)
+                .or_else(|_| {
+                    genpdf::fonts::from_files(
+                        "/usr/share/fonts/truetype/liberation",
+                        "LiberationSerif",
+                        None,
+                    )
+                })
+                .or_else(|_| {
+                    genpdf::fonts::from_files("/usr/share/fonts/TTF", "LiberationSerif", None)
+                })
+                .map_err(|e| {
+                    RenderError::Template(format!(
+                        "Could not load fonts. Please install Liberation fonts. Error: {}",
+                        e
+                    ))
+                })?;
 
         let (width, height) = self.config.paper_size.dimensions();
-        
+
         let mut pdf = Document::new(font_family);
         pdf.set_title(self.config.title.clone().unwrap_or_default());
         pdf.set_paper_size(genpdf::Size::new(width, height));
-        
+
         // Add page decorator with margins
         let mut decorator = SimplePageDecorator::new();
         decorator.set_margins(self.config.margins.top as u32);
         pdf.set_page_decorator(decorator);
-        
+
         pdf.set_font_size(self.config.font_size);
         pdf.set_line_spacing(self.config.line_height);
 
@@ -619,70 +615,68 @@ impl<'a> PdfRenderer<'a> {
                     result.push_str(m);
                     result.push('$');
                 }
-                Inline::Citation(cite) => {
-                    match cite.style {
-                        CitationStyle::Parenthetical => {
-                            let keys: Vec<String> = cite
-                                .keys
-                                .iter()
-                                .map(|k| {
-                                    if let Some(entry) = self.doc.citations.get(k) {
-                                        self.format_short_citation(entry)
-                                    } else {
-                                        k.clone()
-                                    }
-                                })
-                                .collect();
+                Inline::Citation(cite) => match cite.style {
+                    CitationStyle::Parenthetical => {
+                        let keys: Vec<String> = cite
+                            .keys
+                            .iter()
+                            .map(|k| {
+                                if let Some(entry) = self.doc.citations.get(k) {
+                                    self.format_short_citation(entry)
+                                } else {
+                                    k.clone()
+                                }
+                            })
+                            .collect();
 
-                            let mut cite_text = format!("[{}]", keys.join("; "));
-                            if let Some(ref loc) = cite.locator {
-                                cite_text = format!("[{}, {}]", keys.join("; "), loc);
-                            }
-                            result.push_str(&cite_text);
+                        let mut cite_text = format!("[{}]", keys.join("; "));
+                        if let Some(ref loc) = cite.locator {
+                            cite_text = format!("[{}, {}]", keys.join("; "), loc);
                         }
-                        CitationStyle::Textual => {
-                            for (i, key) in cite.keys.iter().enumerate() {
-                                if i > 0 {
-                                    result.push_str(", ");
-                                }
-                                if let Some(entry) = self.doc.citations.get(key) {
-                                    let (author, year) = self.format_author_year(entry);
-                                    result.push_str(&format!("{} ({})", author, year));
-                                } else {
-                                    result.push_str(key);
-                                }
+                        result.push_str(&cite_text);
+                    }
+                    CitationStyle::Textual => {
+                        for (i, key) in cite.keys.iter().enumerate() {
+                            if i > 0 {
+                                result.push_str(", ");
                             }
-                        }
-                        CitationStyle::AuthorOnly => {
-                            for (i, key) in cite.keys.iter().enumerate() {
-                                if i > 0 {
-                                    result.push_str(", ");
-                                }
-                                if let Some(entry) = self.doc.citations.get(key) {
-                                    let (author, _) = self.format_author_year(entry);
-                                    result.push_str(&author);
-                                } else {
-                                    result.push_str(key);
-                                }
+                            if let Some(entry) = self.doc.citations.get(key) {
+                                let (author, year) = self.format_author_year(entry);
+                                result.push_str(&format!("{} ({})", author, year));
+                            } else {
+                                result.push_str(key);
                             }
-                        }
-                        CitationStyle::YearOnly => {
-                            result.push('(');
-                            for (i, key) in cite.keys.iter().enumerate() {
-                                if i > 0 {
-                                    result.push_str(", ");
-                                }
-                                if let Some(entry) = self.doc.citations.get(key) {
-                                    let (_, year) = self.format_author_year(entry);
-                                    result.push_str(&year);
-                                } else {
-                                    result.push_str(key);
-                                }
-                            }
-                            result.push(')');
                         }
                     }
-                }
+                    CitationStyle::AuthorOnly => {
+                        for (i, key) in cite.keys.iter().enumerate() {
+                            if i > 0 {
+                                result.push_str(", ");
+                            }
+                            if let Some(entry) = self.doc.citations.get(key) {
+                                let (author, _) = self.format_author_year(entry);
+                                result.push_str(&author);
+                            } else {
+                                result.push_str(key);
+                            }
+                        }
+                    }
+                    CitationStyle::YearOnly => {
+                        result.push('(');
+                        for (i, key) in cite.keys.iter().enumerate() {
+                            if i > 0 {
+                                result.push_str(", ");
+                            }
+                            if let Some(entry) = self.doc.citations.get(key) {
+                                let (_, year) = self.format_author_year(entry);
+                                result.push_str(&year);
+                            } else {
+                                result.push_str(key);
+                            }
+                        }
+                        result.push(')');
+                    }
+                },
                 Inline::Reference { label, resolved } => {
                     let fallback = format!("??{}", label);
                     let text = resolved.as_deref().unwrap_or(&fallback);
@@ -731,46 +725,62 @@ impl<'a> PdfRenderer<'a> {
 
     fn format_author_year(&self, entry: &crate::ast::BibEntry) -> (String, String) {
         let author = if entry.authors.len() > 2 {
-            let first = entry.authors.first().map(|a| {
-                if let Some(comma) = a.find(',') {
-                    &a[..comma]
-                } else if let Some(space) = a.rfind(' ') {
-                    &a[space + 1..]
-                } else {
-                    a.as_str()
-                }
-            }).unwrap_or("Unknown");
+            let first = entry
+                .authors
+                .first()
+                .map(|a| {
+                    if let Some(comma) = a.find(',') {
+                        &a[..comma]
+                    } else if let Some(space) = a.rfind(' ') {
+                        &a[space + 1..]
+                    } else {
+                        a.as_str()
+                    }
+                })
+                .unwrap_or("Unknown");
             format!("{} et al.", first)
         } else if entry.authors.len() == 2 {
-            let first = entry.authors.first().map(|a| {
-                if let Some(comma) = a.find(',') {
-                    &a[..comma]
-                } else if let Some(space) = a.rfind(' ') {
-                    &a[space + 1..]
-                } else {
-                    a.as_str()
-                }
-            }).unwrap_or("Unknown");
-            let second = entry.authors.get(1).map(|a| {
-                if let Some(comma) = a.find(',') {
-                    &a[..comma]
-                } else if let Some(space) = a.rfind(' ') {
-                    &a[space + 1..]
-                } else {
-                    a.as_str()
-                }
-            }).unwrap_or("Unknown");
+            let first = entry
+                .authors
+                .first()
+                .map(|a| {
+                    if let Some(comma) = a.find(',') {
+                        &a[..comma]
+                    } else if let Some(space) = a.rfind(' ') {
+                        &a[space + 1..]
+                    } else {
+                        a.as_str()
+                    }
+                })
+                .unwrap_or("Unknown");
+            let second = entry
+                .authors
+                .get(1)
+                .map(|a| {
+                    if let Some(comma) = a.find(',') {
+                        &a[..comma]
+                    } else if let Some(space) = a.rfind(' ') {
+                        &a[space + 1..]
+                    } else {
+                        a.as_str()
+                    }
+                })
+                .unwrap_or("Unknown");
             format!("{} & {}", first, second)
         } else {
-            entry.authors.first().map(|a| {
-                if let Some(comma) = a.find(',') {
-                    a[..comma].to_string()
-                } else if let Some(space) = a.rfind(' ') {
-                    a[space + 1..].to_string()
-                } else {
-                    a.to_string()
-                }
-            }).unwrap_or_else(|| "Unknown".to_string())
+            entry
+                .authors
+                .first()
+                .map(|a| {
+                    if let Some(comma) = a.find(',') {
+                        a[..comma].to_string()
+                    } else if let Some(space) = a.rfind(' ') {
+                        a[space + 1..].to_string()
+                    } else {
+                        a.to_string()
+                    }
+                })
+                .unwrap_or_else(|| "Unknown".to_string())
         };
 
         let year = entry.year.as_deref().unwrap_or("n.d.").to_string();

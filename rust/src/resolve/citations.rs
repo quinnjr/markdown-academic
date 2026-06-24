@@ -1,13 +1,13 @@
 //! Citation resolution.
 
-use crate::ast::{BibEntry, Block, Citation, Document, Inline};
+use crate::ast::{BibEntry, Block, Document, Inline};
 use crate::error::{ResolutionError, Result};
 use crate::resolve::ResolveConfig;
 use std::collections::HashMap;
 
 /// Resolve all citations in the document.
 pub fn resolve_citations(
-    mut document: Document,
+    document: Document,
     bibliography: &HashMap<String, BibEntry>,
     config: &ResolveConfig,
 ) -> Result<Document> {
@@ -43,7 +43,9 @@ fn collect_block_citation_keys(block: &Block, keys: &mut Vec<String>) {
     match block {
         Block::Paragraph(inlines) => collect_inline_citation_keys(inlines, keys),
         Block::Heading { content, .. } => collect_inline_citation_keys(content, keys),
-        Block::Environment { content, caption, .. } => {
+        Block::Environment {
+            content, caption, ..
+        } => {
             for block in content {
                 collect_block_citation_keys(block, keys);
             }
@@ -63,7 +65,12 @@ fn collect_block_citation_keys(block: &Block, keys: &mut Vec<String>) {
                 }
             }
         }
-        Block::Table { headers, rows, caption, .. } => {
+        Block::Table {
+            headers,
+            rows,
+            caption,
+            ..
+        } => {
             for header in headers {
                 collect_inline_citation_keys(header, keys);
             }
@@ -117,7 +124,9 @@ fn collect_block_citation_order(
     match block {
         Block::Paragraph(inlines) => collect_inline_citation_order(inlines, keys, seen),
         Block::Heading { content, .. } => collect_inline_citation_order(content, keys, seen),
-        Block::Environment { content, caption, .. } => {
+        Block::Environment {
+            content, caption, ..
+        } => {
             for block in content {
                 collect_block_citation_order(block, keys, seen);
             }

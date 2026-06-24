@@ -65,8 +65,8 @@ pub fn render_markdown(input: &str, options: Option<RenderOptions>) -> Result<St
     let doc = parse(input).map_err(|e| JsError::new(&format!("Parse error: {}", e)))?;
 
     let resolve_config = ResolveConfig::default();
-    let resolved =
-        resolve(doc, &resolve_config).map_err(|e| JsError::new(&format!("Resolution error: {}", e)))?;
+    let resolved = resolve(doc, &resolve_config)
+        .map_err(|e| JsError::new(&format!("Resolution error: {}", e)))?;
 
     let html_config = options.map(|o| o.to_html_config()).unwrap_or_default();
 
@@ -89,12 +89,13 @@ pub fn parse_document(input: &str) -> Result<JsValue, JsError> {
     let doc = parse(input).map_err(|e| JsError::new(&format!("Parse error: {}", e)))?;
 
     let resolve_config = ResolveConfig::default();
-    let resolved =
-        resolve(doc, &resolve_config).map_err(|e| JsError::new(&format!("Resolution error: {}", e)))?;
+    let resolved = resolve(doc, &resolve_config)
+        .map_err(|e| JsError::new(&format!("Resolution error: {}", e)))?;
 
     let info = DocumentInfo::from_resolved(&resolved.document);
 
-    serde_wasm_bindgen::to_value(&info).map_err(|e| JsError::new(&format!("Serialization error: {}", e)))
+    serde_wasm_bindgen::to_value(&info)
+        .map_err(|e| JsError::new(&format!("Serialization error: {}", e)))
 }
 
 /// Parse Markdown and return the full AST as JSON.
@@ -113,8 +114,8 @@ pub fn parse_to_json(input: &str) -> Result<String, JsError> {
     let doc = parse(input).map_err(|e| JsError::new(&format!("Parse error: {}", e)))?;
 
     let resolve_config = ResolveConfig::default();
-    let resolved =
-        resolve(doc, &resolve_config).map_err(|e| JsError::new(&format!("Resolution error: {}", e)))?;
+    let resolved = resolve(doc, &resolve_config)
+        .map_err(|e| JsError::new(&format!("Resolution error: {}", e)))?;
 
     let info = DocumentInfo::from_resolved(&resolved.document);
 
@@ -452,7 +453,10 @@ impl DocumentInfo {
                     }
                 }
                 Block::Environment {
-                    kind, label, content, ..
+                    kind,
+                    label,
+                    content,
+                    ..
                 } => {
                     let type_name = match kind {
                         EnvironmentKind::Theorem => "theorem",
